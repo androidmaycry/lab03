@@ -1,0 +1,114 @@
+{
+  "project_info": {
+    "project_number": "538355662982",
+    "firebase_url": "https://mad-polito.firebaseio.com",
+    "project_id": "mad-polito",
+    "storage_bucket": "mad-polito.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:538355662982:android:0d9452058fed3f06",
+        "android_client_info": {
+          "package_name": "com.mad.appetit"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "538355662982-i64vj3hva2h0onno0hbnk2odi30o0t22.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mad.appetit",
+            "certificate_hash": "bfbd2a6174a4118e9060c7ee5f84842a2d7eccc5"
+          }
+        },
+        {
+          "client_id": "538355662982-k0mjdlcvdd87d2ueh42ls3eu8shsh5tu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACNqz5gNtHxz9Ag0XgfbI81d44jG9Pj30"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "538355662982-k0mjdlcvdd87d2ueh42ls3eu8shsh5tu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:538355662982:android:1a9703f7a04038b3",
+        "android_client_info": {
+          "package_name": "com.mad.customer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "538355662982-n4hv2aj8056idibdu2vl7kc4ujvia6ma.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mad.customer",
+            "certificate_hash": "1dba56891e91737c22d3ff8b4e995c245ecbd877"
+          }
+        },
+        {
+          "client_id": "538355662982-k0mjdlcvdd87d2ueh42ls3eu8shsh5tu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACNqz5gNtHxz9Ag0XgfbI81d44jG9Pj30"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "538355662982-k0mjdlcvdd87d2ueh42ls3eu8shsh5tu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:538355662982:android:503b7f7b7f33d03b",
+        "android_client_info": {
+          "package_name": "com.mad.riders"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "538355662982-k0mjdlcvdd87d2ueh42ls3eu8shsh5tu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACNqz5gNtHxz9Ag0XgfbI81d44jG9Pj30"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "538355662982-k0mjdlcvdd87d2ueh42ls3eu8shsh5tu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
