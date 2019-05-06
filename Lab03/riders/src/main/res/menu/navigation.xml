@@ -12,10 +12,6 @@
         android:title="@string/title_profile" />
 
     <item
-        android:id="@+id/navigation_dailyoffer"
-        android:icon="@drawable/navigation_dailyoffer"
-        android:title="@string/title_dailyoffer" />
-    <item
         android:id="@+id/navigation_reservation"
         android:icon="@drawable/navigation_reservation"
         android:title="@string/title_reservation" />

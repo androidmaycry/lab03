@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.mad.riders">
+
     <uses-feature
         android:name="android.hardware.camera2"
         android:required="true" />
@@ -15,8 +16,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".EditProfile"></activity>
-        <activity android:name=".EditOffer" />
+        <activity android:name=".NavApp"></activity>
+        <activity android:name=".EditProfile" />
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name">
@@ -37,6 +38,5 @@
                 android:resource="@xml/path_strings" />
         </provider>
     </application>
-
 
 </manifest>

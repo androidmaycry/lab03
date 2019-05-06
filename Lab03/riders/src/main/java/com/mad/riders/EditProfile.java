@@ -13,6 +13,7 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
@@ -27,9 +28,49 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+class User{
+    String username;
+    String name;
+    String surname;
+    String email;
+    String phone;
+
+    public User(){
+        this.username = "Null";
+        this.name = "Null";
+        this.surname = "Null";
+        this.email = "Null";
+        this.phone = "Null";
+    }
+
+    public User(String username,String name, String surname, String email, String phone){
+        this.username = username;
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
+        this.phone = phone;
+    }
+
+    public String getUsername(){return username;}
+    public String getName(){return name;}
+    public String getSurname(){return surname;}
+    public String getEmail(){return email;}
+    public String getPhone(){return phone;}
+}
 
 public class EditProfile extends AppCompatActivity {
     private static final String MyPREF = "User_Data";
@@ -56,48 +97,53 @@ public class EditProfile extends AppCompatActivity {
 
     private SharedPreferences user_data, first_check;
 
+    private final String RIDERS_PATH = "riders/";
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+
+        Map<String, Object> new_user = new HashMap<String, Object>();
         setContentView(R.layout.activity_edit_profile);
 
-        try {
-            getData();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        auth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+
+            }
+        });
+
 
         Button confirm_reg = findViewById(R.id.button);
         confirm_reg.setOnClickListener(e -> {
             if(checkFields()){
-                //returns instance pointing to the file that contains values to be saved
-                //MODE_PRIVATE: the file can only be accessed using calling application
-                user_data = getSharedPreferences(MyPREF, MODE_PRIVATE);
-                SharedPreferences.Editor editor = user_data.edit();
 
-                //store data into file
-                editor.putString(Name, name);
-                editor.putString(Address, addr);
-                editor.putString(Description, desc);
-                editor.putString(Email, mail);
-                editor.putString(Phone, phone);
-                editor.putString(Photo, currentPhotoPath);
-                editor.commit();
+                auth.createUserWithEmailAndPassword(mail,"Gallo123").addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d("SIGNIN", "createUserWithEmail:success");
+                            new_user.put("rider",new User("gallottino",name,"Gallotti"
+                                    ,mail,phone));
+                            DatabaseReference myRef = database.getReference(RIDERS_PATH+auth.getUid());
+                            myRef.updateChildren(new_user);
+                            finish();
+                        }
+                        else {
+                            // If sign in fails, display a message to the user.
+                            Log.d("ERROR", "createUserWithEmail:failure", task.getException());
+                        }
 
-                //data saved and start new activity
-                Intent i = new Intent();
-                i.putExtra(Name, name);
-                i.putExtra(Address, addr);
-                i.putExtra(Description, desc);
-                i.putExtra(Email, mail);
-                i.putExtra(Phone, phone);
-                i.putExtra(Photo, currentPhotoPath);
+                        // ...
+                    }
+                });
 
-                setResult(1, i);
-                finish();
-            }
-            else{
-                Toast.makeText(getApplicationContext(), error_msg, Toast.LENGTH_LONG).show();
             }
         });
 

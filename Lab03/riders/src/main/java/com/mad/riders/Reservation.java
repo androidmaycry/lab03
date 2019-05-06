@@ -24,6 +24,29 @@ import java.util.Vector;
  * Use the {@link Reservation#newInstance} factory method to
  * create an instance of this fragment.
  */
+
+class Dish{
+    private String description;
+    private int price;
+
+    public Dish() {
+
+    }
+
+    public Dish(String description, int price) {
+        this.description = description;
+        this.price = price;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public int getPrice() {
+        return price;
+    }
+}
+
 public class Reservation extends Fragment {
 
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER

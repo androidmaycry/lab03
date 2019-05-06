@@ -9,6 +9,7 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,8 +21,19 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -31,6 +43,10 @@ import java.io.IOException;
  * Use the {@link Profile#newInstance} factory method to
  * create an instance of this fragment.
  */
+
+
+
+
 public class Profile extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -55,23 +71,14 @@ public class Profile extends Fragment {
     private static final String FirstRun = "keyRun";
 
     ImageView imgView;
-
     View view;
 
-    private SharedPreferences first_check;
+    private final String RIDERS_PATH = "riders/";
 
     public Profile() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment Profile.
-     */
     // TODO: Rename and change types and number of parameters
     public static Profile newInstance(String param1, String param2) {
         Profile fragment = new Profile();
@@ -90,11 +97,6 @@ public class Profile extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
-        setHasOptionsMenu(true);
-    }
-
-    public void checkFirst(){
-
     }
 
     @Override
@@ -103,53 +105,43 @@ public class Profile extends Fragment {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_profile, container, false);
 
-        SharedPreferences user_data = getContext().getSharedPreferences(MyPREF, 0);
-        if(((user_data.getString(Name, null))) == null) {
-            Intent i = new Intent(getContext(),EditProfile.class);
-            startActivity(i);
-        }
+        String UID = getArguments().getString("UID");
 
-        ((TextView)view.findViewById(R.id.name)).setText(user_data.getString(Name, ""));
-        ((TextView)view.findViewById(R.id.address)).setText(user_data.getString(Address, ""));
-        ((TextView)view.findViewById(R.id.description)).setText(user_data.getString(Description, ""));
-        ((TextView)view.findViewById(R.id.mail)).setText(user_data.getString(Email, ""));
-        ((TextView)view.findViewById(R.id.phone)).setText(user_data.getString(Phone, ""));
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference(RIDERS_PATH).child(UID);
 
-        imgView = view.findViewById(R.id.profile_image);
+        Log.d("PATH",RIDERS_PATH+UID);
 
-        try {
-            if(!user_data.getString(Photo,"").equals(""))
-                setPhoto(user_data.getString(Photo, ""));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                List<User> users = new ArrayList<>();
+                for(DataSnapshot d : dataSnapshot.getChildren())
+                    users.add(d.getValue(User.class));
+
+                for(User user : users) {
+                    ((TextView) view.findViewById(R.id.name)).setText(user.getName());
+                    ((TextView) view.findViewById(R.id.address)).setText(user.getSurname());
+                    ((TextView) view.findViewById(R.id.description)).setText("Prova");
+                    ((TextView) view.findViewById(R.id.mail)).setText(user.getEmail());
+                    ((TextView) view.findViewById(R.id.phone)).setText(user.getPhone());
+                }
+            }
 
 
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.w("MAIN", "Failed to read value.", error.toException());
+            }
+        });
 
         return view;
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_main, menu);
-
-
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        switch (id){
-            case R.id.add:
-                Intent i = new Intent(getContext(),EditProfile.class);
-                startActivity(i);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
 
     private void setPhoto(String photoPath) throws IOException {
         File imgFile = new File(photoPath);
@@ -159,6 +151,7 @@ public class Profile extends Fragment {
 
         imgView.setImageBitmap(myBitmap);
     }
+
 
     private Bitmap adjustPhoto(Bitmap bitmap, String photoPath) throws IOException {
         ExifInterface ei = new ExifInterface(photoPath);
@@ -217,21 +210,6 @@ public class Profile extends Fragment {
     public void onResume() {
         super.onResume();
 
-        Log.d("RESUME","resuming");
-        SharedPreferences user_data = getContext().getSharedPreferences(MyPREF, 0);
-
-        ((TextView)view.findViewById(R.id.name)).setText(user_data.getString(Name, ""));
-        ((TextView)view.findViewById(R.id.address)).setText(user_data.getString(Address, ""));
-        ((TextView)view.findViewById(R.id.description)).setText(user_data.getString(Description, ""));
-        ((TextView)view.findViewById(R.id.mail)).setText(user_data.getString(Email, ""));
-        ((TextView)view.findViewById(R.id.phone)).setText(user_data.getString(Phone, ""));
-
-        try {
-            if(!user_data.getString(Photo,"").equals(""))
-                setPhoto(user_data.getString(Photo, ""));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
