@@ -460,7 +460,7 @@ public class EditProfile extends AppCompatActivity {
         ((EditText)findViewById(R.id.name)).setText(savedInstanceState.getString(Name));
         ((EditText)findViewById(R.id.surname)).setText(savedInstanceState.getString(Address));
         ((EditText)findViewById(R.id.mail)).setText(savedInstanceState.getString(Email));
-        ((EditText)findViewById(R.id.phone)).setText(savedInstanceState.getString(Phone));
+        ((EditText)findViewById(R.id.phone2)).setText(savedInstanceState.getString(Phone));
         currentPhotoPath = savedInstanceState.getString(Photo);
         if(currentPhotoPath != null){
             try {

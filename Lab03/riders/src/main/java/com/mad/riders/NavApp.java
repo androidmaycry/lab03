@@ -1,16 +1,14 @@
 package com.mad.riders;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
 public class NavApp extends AppCompatActivity implements
-        Reservation.OnFragmentInteractionListener,
+        Orders.OnFragmentInteractionListener,
         Home.OnFragmentInteractionListener,
         Profile.OnFragmentInteractionListener{
 
@@ -34,7 +32,7 @@ public class NavApp extends AppCompatActivity implements
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
                 return true;
             case R.id.navigation_reservation:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new Reservation()).commit();
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new Orders()).commit();
                 return true;
         }
         return false;
