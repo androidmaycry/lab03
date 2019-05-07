@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include
+        layout="@layout/restaurant_info"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        tools:layout_editor_absoluteX="63dp"
+        tools:layout_editor_absoluteY="280dp" />
+    <include
+        layout="@layout/dishes"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        tools:layout_editor_absoluteX="63dp"
+        tools:layout_editor_absoluteY="280dp" />
+</LinearLayout>

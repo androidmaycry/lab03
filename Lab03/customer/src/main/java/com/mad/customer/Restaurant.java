@@ -1,6 +1,7 @@
 package com.mad.customer;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,13 +12,18 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,16 +31,21 @@ import java.util.List;
 
 public class Restaurant extends Fragment {
 
+
+    private RecyclerView recyclerView;
+    private FirebaseRecyclerAdapter<RestaurantItem, RestaurantViewHolder> mAdapter;
+    private RecyclerView.LayoutManager layoutManager;
+
+
+    private static FirebaseRecyclerOptions<RestaurantItem> options =
+            new FirebaseRecyclerOptions.Builder<RestaurantItem>()
+                    .setQuery(FirebaseDatabase.getInstance().getReference().child("restaurants"),
+                            RestaurantItem.class).build();
+
+
     public Restaurant() {
         // Required empty public constructor
     }
-    private RecyclerView recyclerView,recyclerView_accepted;
-    private RecyclerView.Adapter mAdapter,mAdapter_accepted;
-    private RecyclerView.LayoutManager layoutManager;
-
-    private DatabaseReference mDatabaseRef;
-
-    ArrayList<RestaurantItem> items ;
 
     @Nullable
     @Override
@@ -47,27 +58,20 @@ public class Restaurant extends Fragment {
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
 
-        items = new ArrayList<>();
-
-        mDatabaseRef = FirebaseDatabase.getInstance().getReference("restaurants");
-        mDatabaseRef.addValueEventListener(new ValueEventListener() {
+        mAdapter = new FirebaseRecyclerAdapter<RestaurantItem, RestaurantViewHolder>(options) {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    RestaurantItem upload = postSnapshot.getValue(RestaurantItem.class);
-                    items.add(upload);
-                }
-
-                mAdapter = new RecyclerAdapterRestaurant(getContext(), items);
-                recyclerView.setAdapter(mAdapter);
-
+            protected void onBindViewHolder(@NonNull RestaurantViewHolder holder, int position, @NonNull RestaurantItem model) {
+                holder.setData(model, position);
             }
 
+            @NonNull
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-
+            public RestaurantViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.restaurant_item,parent,false);
+                return new RestaurantViewHolder(view);
             }
-        });
+        };
+        recyclerView.setAdapter(mAdapter);
         return view;
     }
 
@@ -90,6 +94,16 @@ public class Restaurant extends Fragment {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAdapter.startListening();
+    }
+    @Override
+    public void onStop() {
+        super.onStop();
+        mAdapter.stopListening();
     }
 
 }
