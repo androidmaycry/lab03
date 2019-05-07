@@ -2,20 +2,17 @@ package com.mad.riders;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import android.os.StrictMode;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -30,10 +27,11 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -105,6 +103,10 @@ public class Profile extends Fragment {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_profile, container, false);
 
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+
         String UID = getArguments().getString("UID");
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -118,17 +120,22 @@ public class Profile extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
-                List<User> users = new ArrayList<>();
-                for(DataSnapshot d : dataSnapshot.getChildren())
-                    users.add(d.getValue(User.class));
-
-                for(User user : users) {
-                    ((TextView) view.findViewById(R.id.name)).setText(user.getName());
-                    ((TextView) view.findViewById(R.id.address)).setText(user.getSurname());
-                    ((TextView) view.findViewById(R.id.description)).setText("Prova");
-                    ((TextView) view.findViewById(R.id.mail)).setText(user.getEmail());
-                    ((TextView) view.findViewById(R.id.phone)).setText(user.getPhone());
+                User user;
+                user = dataSnapshot.child("rider_info").getValue(User.class);
+                ((TextView) view.findViewById(R.id.name)).setText(user.getName());
+                ((TextView) view.findViewById(R.id.surname)).setText(user.getSurname());
+                ((TextView) view.findViewById(R.id.mail)).setText(user.getEmail());
+                ((TextView) view.findViewById(R.id.phone)).setText(user.getPhone());
+                ImageView imageView = view.findViewById(R.id.profile_image);
+                InputStream in = null;
+                try {
+                    in = new URL(user.getPhotoPath()).openStream();
+                    Bitmap bimage = BitmapFactory.decodeStream(in);
+                    imageView.setImageBitmap(bimage);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+
             }
 
 

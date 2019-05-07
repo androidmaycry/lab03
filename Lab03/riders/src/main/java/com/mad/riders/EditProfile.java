@@ -1,6 +1,7 @@
 package com.mad.riders;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -28,13 +29,17 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,6 +53,7 @@ class User{
     String surname;
     String email;
     String phone;
+    String photoPath;
 
     public User(){
         this.username = "Null";
@@ -57,12 +63,13 @@ class User{
         this.phone = "Null";
     }
 
-    public User(String username,String name, String surname, String email, String phone){
+    public User(String username,String name, String surname, String email, String phone,String photoPath){
         this.username = username;
         this.name = name;
         this.surname = surname;
         this.email = email;
         this.phone = phone;
+        this.photoPath = photoPath;
     }
 
     public String getUsername(){return username;}
@@ -70,6 +77,7 @@ class User{
     public String getSurname(){return surname;}
     public String getEmail(){return email;}
     public String getPhone(){return phone;}
+    public String getPhotoPath(){return photoPath;}
 }
 
 public class EditProfile extends AppCompatActivity {
@@ -88,26 +96,30 @@ public class EditProfile extends AppCompatActivity {
     private boolean dialog_open = false;
 
     private String name;
-    private String addr;
-    private String desc;
+    private String surname;
     private String mail;
     private String phone;
     private String currentPhotoPath;
+    private String psw;
+    private String psw_confirm;
+
     private String error_msg;
+    private Uri url;
 
     private SharedPreferences user_data, first_check;
 
     private final String RIDERS_PATH = "riders/";
-
-
+    private FirebaseStorage storage;
+    FirebaseDatabase database;
+    private StorageReference storageReference;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        database = FirebaseDatabase.getInstance();
 
-        Map<String, Object> new_user = new HashMap<String, Object>();
+
         setContentView(R.layout.activity_edit_profile);
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -118,21 +130,23 @@ public class EditProfile extends AppCompatActivity {
             }
         });
 
+        storage = FirebaseStorage.getInstance();
+        storageReference = storage.getReference();
 
         Button confirm_reg = findViewById(R.id.button);
         confirm_reg.setOnClickListener(e -> {
             if(checkFields()){
 
-                auth.createUserWithEmailAndPassword(mail,"Gallo123").addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                auth.createUserWithEmailAndPassword(mail,psw).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d("SIGNIN", "createUserWithEmail:success");
-                            new_user.put("rider",new User("gallottino",name,"Gallotti"
-                                    ,mail,phone));
-                            DatabaseReference myRef = database.getReference(RIDERS_PATH+auth.getUid());
-                            myRef.updateChildren(new_user);
+
+
+                            uploadImage(auth.getUid().toString());
+
                             finish();
                         }
                         else {
@@ -145,10 +159,56 @@ public class EditProfile extends AppCompatActivity {
                 });
 
             }
+            else{
+                Toast.makeText(getApplicationContext(), error_msg, Toast.LENGTH_LONG).show();
+            }
         });
 
         findViewById(R.id.plus).setOnClickListener(p -> editPhoto());
         findViewById(R.id.img_profile).setOnClickListener(e -> editPhoto());
+    }
+
+    private void uploadImage(String UID) {
+
+
+        if(currentPhotoPath != null)
+        {
+            final ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setTitle("Uploading...");
+            progressDialog.show();
+
+            StorageReference ref = storageReference.child("images/").child("riders/").child(UID);
+            url = Uri.fromFile(new File(currentPhotoPath));
+            ref.putFile(url).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                @Override
+                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                    if (!task.isSuccessful()){
+                        throw task.getException();
+                    }
+                    return ref.getDownloadUrl();
+                }
+            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                @Override
+                public void onComplete(@NonNull Task<Uri> task) {
+                    if (task.isSuccessful()){
+                        Uri downUri = task.getResult();
+                        Log.d("URL", "onComplete: Url: "+ downUri.toString());
+                        Map<String, Object> new_user = new HashMap<String, Object>();
+                        new_user.put("rider_info",new User("gallottino",name, surname
+                                ,mail,phone,downUri.toString()));
+                        DatabaseReference myRef = database.getReference(RIDERS_PATH+UID);
+                        myRef.updateChildren(new_user);
+                    }
+                }
+            });
+        }else{
+            Map<String, Object> new_user = new HashMap<String, Object>();
+            new_user.put("rider_info",new User("gallottino",name, surname
+                    ,mail,phone,"null"));
+            DatabaseReference myRef = database.getReference(RIDERS_PATH+UID);
+            myRef.updateChildren(new_user);
+        }
+
     }
 
     private void editPhoto(){
@@ -224,17 +284,18 @@ public class EditProfile extends AppCompatActivity {
 
     private boolean checkFields(){
         name = ((EditText)findViewById(R.id.name)).getText().toString();
-        addr = ((EditText)findViewById(R.id.address)).getText().toString();
-        desc = ((EditText)findViewById(R.id.description)).getText().toString();
+        surname = ((EditText)findViewById(R.id.surname)).getText().toString();
         mail = ((EditText)findViewById(R.id.mail)).getText().toString();
-        phone = ((EditText)findViewById(R.id.phone)).getText().toString();
+        phone = ((EditText)findViewById(R.id.phone2)).getText().toString();
+        psw = ((EditText)findViewById(R.id.psw)).getText().toString();
+        psw_confirm = ((EditText)findViewById(R.id.psw_confirm)).getText().toString();
 
         if(name.trim().length() == 0){
             error_msg = "Insert name";
             return false;
         }
 
-        if(addr.trim().length() == 0){
+        if(surname.trim().length() == 0){
             error_msg = "Insert address";
             return false;
         }
@@ -249,25 +310,13 @@ public class EditProfile extends AppCompatActivity {
             return false;
         }
 
+        if(psw.compareTo(psw_confirm) != 0){
+            error_msg = "Passwords don't match";
+            return false;
+        }
+
+
         return true;
-    }
-
-    private void getData() throws IOException {
-        user_data = getSharedPreferences(MyPREF, MODE_PRIVATE);
-
-        name = user_data.getString(Name, "");
-        addr = user_data.getString(Address, "");
-        desc = user_data.getString(Description, "");
-        mail = user_data.getString(Email, "");
-        phone = user_data.getString(Phone, "");
-        currentPhotoPath = user_data.getString(Photo, "");
-
-        ((EditText)findViewById(R.id.name)).setText(name);
-        ((EditText)findViewById(R.id.address)).setText(addr);
-        ((EditText)findViewById(R.id.description)).setText(desc);
-        ((EditText)findViewById(R.id.mail)).setText(mail);
-        ((EditText)findViewById(R.id.phone)).setText(phone);
-        setPhoto(currentPhotoPath);
     }
 
     private void setPhoto(String photoPath) throws IOException {
@@ -397,10 +446,9 @@ public class EditProfile extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
 
         savedInstanceState.putString(Name, ((EditText)findViewById(R.id.name)).getText().toString());
-        savedInstanceState.putString(Address, ((EditText)findViewById(R.id.address)).getText().toString());
-        savedInstanceState.putString(Description, ((EditText)findViewById(R.id.description)).getText().toString());
+        savedInstanceState.putString(Address, ((EditText)findViewById(R.id.surname)).getText().toString());
         savedInstanceState.putString(Email, ((EditText)findViewById(R.id.mail)).getText().toString());
-        savedInstanceState.putString(Phone, ((EditText)findViewById(R.id.phone)).getText().toString());
+        savedInstanceState.putString(Phone, ((EditText)findViewById(R.id.phone2)).getText().toString());
         savedInstanceState.putString(Photo, currentPhotoPath);
         savedInstanceState.putBoolean(DialogOpen, dialog_open);
     }
@@ -410,8 +458,7 @@ public class EditProfile extends AppCompatActivity {
         super.onRestoreInstanceState(savedInstanceState);
 
         ((EditText)findViewById(R.id.name)).setText(savedInstanceState.getString(Name));
-        ((EditText)findViewById(R.id.address)).setText(savedInstanceState.getString(Address));
-        ((EditText)findViewById(R.id.description)).setText(savedInstanceState.getString(Description));
+        ((EditText)findViewById(R.id.surname)).setText(savedInstanceState.getString(Address));
         ((EditText)findViewById(R.id.mail)).setText(savedInstanceState.getString(Email));
         ((EditText)findViewById(R.id.phone)).setText(savedInstanceState.getString(Phone));
         currentPhotoPath = savedInstanceState.getString(Photo);
