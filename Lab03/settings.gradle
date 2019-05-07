@@ -1,1 +1,1 @@
-include ':app', ':customer', ':riders'
+include ':app', ':customer', ':riders', ':lib'

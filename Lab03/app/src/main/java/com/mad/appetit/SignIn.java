@@ -1,6 +1,18 @@
 package com.mad.appetit;
 
-import static com.mad.lib.SharedClass.*;
+import com.bumptech.glide.Glide;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.mad.lib.Restaurateur;
+
+import static com.mad.lib.SharedClass.CameraOpen;
+import static com.mad.lib.SharedClass.Description;
+import static com.mad.lib.SharedClass.Name;
+import static com.mad.lib.SharedClass.PERMISSION_GALLERY_REQUEST;
+import static com.mad.lib.SharedClass.Photo;
+import static com.mad.lib.SharedClass.RESTAURATEUR_INFO;
+import static com.mad.lib.SharedClass.ROOT_UID;
+
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -8,7 +20,6 @@ import android.database.Cursor;
 import android.icu.text.SimpleDateFormat;
 import android.net.Uri;
 import android.os.Environment;
-import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -23,122 +34,97 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.mad.lib.Restaurateur;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-public class EditProfile extends AppCompatActivity {
-    private String name;
-    private String addr;
-    private String desc;
-    private String mail;
-    private String phone;
-    private String currentPhotoPath;
-    private String error_msg = " ";
+public class SignIn extends AppCompatActivity {
+    private String mail, psw, name, addr, descr, phone;
+    private String errMsg = " ";
+    private String currentPhotoPath = null;
 
-    private boolean photoChanged = false;
     private boolean camera_open = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_edit_profile);
+        setContentView(R.layout.activity_sign_in);
 
-        getData();
-
-        findViewById(R.id.button).setOnClickListener(e -> {
-            if(checkFields()){
-                storeDatabase();
-
-                finish();
-            }
-            else{
-                Toast.makeText(getApplicationContext(), error_msg, Toast.LENGTH_LONG).show();
-            }
-        });
+        FirebaseAuth auth = FirebaseAuth.getInstance();
 
         findViewById(R.id.plus).setOnClickListener(p -> editPhoto());
         findViewById(R.id.img_profile).setOnClickListener(e -> editPhoto());
+
+        findViewById(R.id.button).setOnClickListener(e -> {
+            if(checkFields()){
+                auth.createUserWithEmailAndPassword(mail, psw).addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        ROOT_UID = auth.getUid();
+                        storeDatabase();
+
+                        Intent i = new Intent();
+                        setResult(1, i);
+
+                        finish();
+                    }
+                    else {
+                        Toast.makeText(SignIn.this,"Registration failed. Try again", Toast.LENGTH_LONG).show();
+                        Log.d("SIGN IN", "Error: createUserWithEmail:failure", task.getException());
+                    }
+                });
+            }
+            else{
+                Toast.makeText(SignIn.this, errMsg, Toast.LENGTH_LONG).show();
+            }
+        });
     }
-    private boolean checkFields(){
+
+    public boolean checkFields(){
+        mail = ((EditText)findViewById(R.id.mail)).getText().toString();
+        psw = ((EditText)findViewById(R.id.psw)).getText().toString();
         name = ((EditText)findViewById(R.id.name)).getText().toString();
         addr = ((EditText)findViewById(R.id.address)).getText().toString();
-        desc = ((EditText)findViewById(R.id.description)).getText().toString();
-        mail = ((EditText)findViewById(R.id.mail)).getText().toString();
+        descr = ((EditText)findViewById(R.id.description)).getText().toString();
         phone = ((EditText)findViewById(R.id.phone)).getText().toString();
 
+        if(mail.trim().length() == 0 || !android.util.Patterns.EMAIL_ADDRESS.matcher(mail).matches()){
+            errMsg = "Invalid Mail";
+            return false;
+        }
+
+        if(psw.trim().length() == 0 || psw.length() < 6){
+            errMsg = "Password should be at least 6 characters";
+            return false;
+        }
+
         if(name.trim().length() == 0){
-            error_msg = "Fill name";
+            errMsg = "Fill name";
             return false;
         }
 
         if(addr.trim().length() == 0){
-            error_msg = "Fill address";
-            return false;
-        }
-
-        if(mail.trim().length() == 0 || !android.util.Patterns.EMAIL_ADDRESS.matcher(mail).matches()){
-            error_msg = "Invalid mail";
+            errMsg = "Fill address";
             return false;
         }
 
         if(phone.trim().length() != 10){
-            error_msg = "Invalid phone number";
+            errMsg = "Invalid phone number";
             return false;
         }
 
         return true;
     }
 
-    private void getData(){
-        Intent i = getIntent();
-
-        name = i.getStringExtra(Name);
-        addr = i.getStringExtra(Address);
-        desc = i.getStringExtra(Description);
-        mail = i.getStringExtra(Mail);
-        phone = i.getStringExtra(Phone);
-        currentPhotoPath = i.getStringExtra(Photo);
-
-        ((EditText)findViewById(R.id.name)).setText(name);
-        ((EditText)findViewById(R.id.address)).setText(addr);
-        ((EditText)findViewById(R.id.description)).setText(desc);
-        ((EditText)findViewById(R.id.mail)).setText(mail);
-        ((EditText)findViewById(R.id.phone)).setText(phone);
-
-        InputStream inputStream = null;
-
-        try{
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-
-            inputStream = new URL(currentPhotoPath).openStream();
-            if(inputStream != null)
-                Glide.with(getApplicationContext()).load(currentPhotoPath).into((ImageView)findViewById(R.id.img_profile));
-            else
-                ((ImageView)findViewById(R.id.img_profile)).setImageResource(R.drawable.person);
-        }
-        catch (IOException e){
-            e.printStackTrace();
-        }
-    }
-
     private void editPhoto(){
-        AlertDialog alertDialog = new AlertDialog.Builder(EditProfile.this, R.style.AlertDialogStyle).create();
-        LayoutInflater factory = LayoutInflater.from(EditProfile.this);
+        AlertDialog alertDialog = new AlertDialog.Builder(SignIn.this, R.style.AlertDialogStyle).create();
+        LayoutInflater factory = LayoutInflater.from(SignIn.this);
         final View view = factory.inflate(R.layout.custom_dialog, null);
 
         camera_open = true;
@@ -182,8 +168,6 @@ public class EditProfile extends AppCompatActivity {
                 Uri photoURI = FileProvider.getUriForFile(this,
                         "com.example.android.fileprovider",
                         photoFile);
-
-                photoChanged = true;
 
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, 2);
@@ -248,7 +232,6 @@ public class EditProfile extends AppCompatActivity {
 
         if((requestCode == 1) && resultCode == RESULT_OK && null != data){
             Uri selectedImage = data.getData();
-            photoChanged = true;
 
             String[] filePathColumn = { MediaStore.Images.Media.DATA };
 
@@ -268,12 +251,12 @@ public class EditProfile extends AppCompatActivity {
         }
     }
 
-    private void storeDatabase(){
+    public void storeDatabase(){
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO);
         StorageReference storageReference = FirebaseStorage.getInstance().getReference();
-        Map<String, Object> profileMap = new HashMap<>();
+        Map<String, Object> restMap = new HashMap<>();
 
-        if(photoChanged && currentPhotoPath != null) {
+        if(currentPhotoPath != null) {
             Uri photoUri = Uri.fromFile(new File(currentPhotoPath));
             StorageReference ref = storageReference.child("images/"+ UUID.randomUUID().toString());
 
@@ -286,47 +269,38 @@ public class EditProfile extends AppCompatActivity {
                 if (task.isSuccessful()){
                     Uri downUri = task.getResult();
 
-                    profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, phone, downUri.toString()));
-                    myRef.updateChildren(profileMap);
+                    restMap.put(ROOT_UID, new Restaurateur(mail, name, addr, descr, phone, downUri.toString()));
+                    myRef.updateChildren(restMap);
                 }
             });
         }
         else{
-            if(currentPhotoPath != null)
-                profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, phone, currentPhotoPath));
-            else
-                profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, phone,  null));
-
-            myRef.updateChildren(profileMap);
+            restMap.put(ROOT_UID, new Restaurateur(mail, name, addr, descr, phone, null));
+            myRef.updateChildren(restMap);
         }
     }
 
     @Override
-    public void onSaveInstanceState(Bundle savedInstanceState){
+    public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
 
         savedInstanceState.putString(Name, ((EditText)findViewById(R.id.name)).getText().toString());
-        savedInstanceState.putString(Address, ((EditText)findViewById(R.id.address)).getText().toString());
         savedInstanceState.putString(Description, ((EditText)findViewById(R.id.description)).getText().toString());
-        savedInstanceState.putString(Mail, ((EditText)findViewById(R.id.mail)).getText().toString());
-        savedInstanceState.putString(Phone, ((EditText)findViewById(R.id.phone)).getText().toString());
         savedInstanceState.putString(Photo, currentPhotoPath);
         savedInstanceState.putBoolean(CameraOpen, camera_open);
     }
 
     @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 
         ((EditText)findViewById(R.id.name)).setText(savedInstanceState.getString(Name));
-        ((EditText)findViewById(R.id.address)).setText(savedInstanceState.getString(Address));
         ((EditText)findViewById(R.id.description)).setText(savedInstanceState.getString(Description));
-        ((EditText)findViewById(R.id.mail)).setText(savedInstanceState.getString(Mail));
-        ((EditText)findViewById(R.id.phone)).setText(savedInstanceState.getString(Phone));
 
         currentPhotoPath = savedInstanceState.getString(Photo);
-        if(currentPhotoPath != null)
-            Glide.with(getApplicationContext()).load(currentPhotoPath).into((ImageView)findViewById(R.id.img_profile));
+        if(currentPhotoPath != null){
+            Glide.with(getApplicationContext()).load(currentPhotoPath).into((ImageView) findViewById(R.id.img_profile));
+        }
 
         if(savedInstanceState.getBoolean(CameraOpen))
             editPhoto();

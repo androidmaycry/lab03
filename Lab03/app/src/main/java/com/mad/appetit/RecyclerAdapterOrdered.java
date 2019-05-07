@@ -21,7 +21,6 @@ public class RecyclerAdapterOrdered extends RecyclerView.Adapter<RecyclerAdapter
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder{
-
         TextView dish_name;
 
         public MyViewHolder(View itemView){

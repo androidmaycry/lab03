@@ -5,56 +5,61 @@ public class DailyOfferItem {
     private String desc;
     private float price;
     private int quantity;
-    private String photoPath;
+    private String photo;
 
-    public DailyOfferItem(){}
+    public DailyOfferItem() {
+        this.name = "";
+        this.desc = "";
+        this.price = -1;
+        this.quantity = -1;
+        this.photo = null;
+    }
 
-    public DailyOfferItem(String name, String desc, float price, int quantity, String photoPath){
+    public DailyOfferItem(String name, String desc, float price, int quantity, String photo) {
         this.name = name;
         this.desc = desc;
         this.price = price;
         this.quantity = quantity;
-        this.photoPath = photoPath;
+        this.photo = photo;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String nome) {
-        this.name = nome;
-    }
-
     public String getDesc() {
         return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
     }
 
     public float getPrice() {
         return price;
     }
 
-    public void setPrice(float price) {
-        this.price = price;
-    }
-
     public int getQuantity() {
         return quantity;
+    }
+
+    public String getPhotoUri() {
+        return photo;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    public void setPrice(float price) {
+        this.price = price;
     }
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
 
-    public String getPhotoPath(){
-        return photoPath;
+    public void setPhotoUri(String photo) {
+        this.photo = photo;
     }
-
-    public void setPhotoPath(String photoPath){
-        this.photoPath = photoPath;
-    }
-
 }

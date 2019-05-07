@@ -1,15 +1,15 @@
 package com.mad.appetit;
 
+import static com.mad.lib.SharedClass.*;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.icu.text.SimpleDateFormat;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -27,51 +27,44 @@ import android.widget.NumberPicker;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 public class EditOffer extends AppCompatActivity {
-    private static final String MyOFFER = "Daily_Offer";
-    private static final String Name = "keyName";
-    private static final String Description = "keyDescription";
-    private static final String Price = "keyEuroPrice";
-    private static final String Photo ="keyPhotoPath";
-    private static final String Quantity = "keyQuantity";
-    private static final String CameraOpen = "keyCameraDialog";
-    private static final String PriceOpen = "keyPriceDialog";
-    private static final String QuantOpen = "keyQuantityDialog";
-    private static final String NItem = "NItemKey";
-
-    private ArrayList<String> dataArray = new ArrayList<>();
-    private int nItem;
+    private String error_msg = "";
+    private boolean editing = false;
+    private boolean photoChanged = false;
+    private String keyChild;
 
     private String name;
     private String desc;
-    private String error_msg;
     private float priceValue = -1;
     private int quantValue = -1;
+    private String currentPhotoPath = null;
+    private ImageView imageview;
 
     private boolean camera_open = false;
     private boolean price_open = false;
     private boolean quant_open = false;
 
-    private static final int PERMISSION_GALLERY_REQUEST = 1;
-    private String currentPhotoPath;
     private Button priceButton;
     private Button quantButton;
-    private SharedPreferences offer_data;
-    private int pos;
-    private boolean edit = false;
-    private SharedPreferences dishes_data;
-    private ImageView imageview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,35 +77,21 @@ public class EditOffer extends AppCompatActivity {
 
         priceButton.setOnClickListener(e->setPrice());
         quantButton.setOnClickListener(f->setQuantity());
+
         findViewById(R.id.plus).setOnClickListener(p -> editPhoto());
         findViewById(R.id.img_profile).setOnClickListener(e -> editPhoto());
-        imageview = (ImageView)findViewById(R.id.img_profile);
 
-        int pos = getIntent().getIntExtra("Existing",-1);
+        imageview = findViewById(R.id.img_profile);
 
-        if(pos != -1 )
-            getData(pos);
+        String dishName = getIntent().getStringExtra(EDIT_EXISTING_DISH);
+        if(dishName != null)
+            getData(dishName);
         else
             imageview.setImageResource(R.drawable.hamburger);
 
-        Button confirm_reg = findViewById(R.id.button);
-        confirm_reg.setOnClickListener(e -> {
+        findViewById(R.id.button).setOnClickListener(e -> {
             if(checkFields()){
-
-                //data saved and start new activity
-                Intent i = new Intent();
-                i.putExtra(Name, name);
-                i.putExtra(Description, desc);
-                i.putExtra(Price, priceValue);
-                i.putExtra(Photo, currentPhotoPath);
-                i.putExtra(Quantity, quantValue);
-
-                if(pos != -1){
-                    i.putExtra("EDIT_PHOTO_POS", pos);
-                    setResult(2, i);
-                }
-                else
-                    setResult(1, i);
+                storeDatabase();
 
                 finish();
             }
@@ -122,40 +101,60 @@ public class EditOffer extends AppCompatActivity {
         });
     }
 
+    private void getData(String dishName){
+        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference();
+        Query query = myRef.child(DISHES_PATH).orderByChild("name").equalTo(dishName);
 
-    private void getData(Integer id){
-        offer_data = getSharedPreferences("dishes", MODE_PRIVATE);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    DailyOfferItem dish = new DailyOfferItem();
 
-        String name;
-        String desc;
-        String photoPath;
-        float price;
-        int quantity;
+                    for(DataSnapshot d : dataSnapshot.getChildren()) {
+                        dish = d.getValue(DailyOfferItem.class);
+                        keyChild = d.getKey();
+                        break;
+                    }
 
-        dishes_data = getSharedPreferences("dishes",0);
-        name = dishes_data.getString("Name " + id.toString(), null);
-        desc = dishes_data.getString("Desc " + id.toString(), null);
-        photoPath = dishes_data.getString("Photo " + id.toString(), null);
-        price = dishes_data.getFloat("Price " + id.toString(), 0);
-        quantity = dishes_data.getInt("Quantity " + id.toString(), 0);
+                    editing = true;
 
-        this.name = name;
-        this.desc = desc;
-        priceValue = price;
-        quantValue = quantity;
-        currentPhotoPath = photoPath;
+                    name = dish.getName();
+                    desc = dish.getDesc();
+                    priceValue = dish.getPrice();
+                    quantValue = dish.getQuantity();
+                    currentPhotoPath = dish.getPhotoUri();
 
-        ((EditText)findViewById(R.id.name)).setText(name);
-        ((EditText)findViewById(R.id.description)).setText(desc);
-        if(currentPhotoPath!=null)
-            Glide.with(getApplicationContext()).load(photoPath).into((ImageView) findViewById(R.id.img_profile));
-        else
-            imageview.setImageResource(R.drawable.hamburger);
+                    InputStream inputStream = null;
 
-        priceButton.setText(Float.toString(price));
-        quantButton.setText(Integer.toString(quantity));
+                    try{
+                        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+                        StrictMode.setThreadPolicy(policy);
+
+                        inputStream = new URL(currentPhotoPath).openStream();
+                        if(inputStream != null)
+                            Glide.with(getApplicationContext()).load(currentPhotoPath).into((ImageView)findViewById(R.id.img_profile));
+                        else
+                            imageview.setImageResource(R.drawable.hamburger);
+                    }
+                    catch (IOException e){
+                        e.printStackTrace();
+                    }
+
+                    ((EditText)findViewById(R.id.name)).setText(name);
+                    ((EditText)findViewById(R.id.description)).setText(desc);
+
+                    priceButton.setText(Float.toString(priceValue));
+                    quantButton.setText(Integer.toString(quantValue));
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Log.w("EDIT OFFER", "Failed to read value.", error.toException());
+            }
+        });
     }
-
 
     private boolean checkFields(){
         name = ((EditText)findViewById(R.id.name)).getText().toString();
@@ -210,8 +209,8 @@ public class EditOffer extends AppCompatActivity {
         priceDialog.setView(view);
 
         priceDialog.setButton(AlertDialog.BUTTON_POSITIVE,"OK", (dialog, which) -> {
-            price_open = false;
             float centValue = cent.getValue();
+            price_open = false;
             priceValue = euro.getValue() + (centValue/100);
             priceButton.setText(Float.toString(priceValue));
         });
@@ -284,6 +283,7 @@ public class EditOffer extends AppCompatActivity {
             camera_open = false;
             alertDialog.dismiss();
         });
+
         alertDialog.setView(view);
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Camera", (dialog, which) -> {
             cameraIntent();
@@ -301,18 +301,15 @@ public class EditOffer extends AppCompatActivity {
     private void cameraIntent(){
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-                Log.d("FILE: ","error creating file");
-            }
-            // Continue only if the File was successfully created
+            File photoFile = createImageFile();
+
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
                         "com.example.android.fileprovider",
                         photoFile);
+
+                photoChanged = true;
+
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, 2);
             }
@@ -333,7 +330,7 @@ public class EditOffer extends AppCompatActivity {
         }
     }
 
-    private File createImageFile() throws IOException {
+    private File createImageFile() {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "IMG_" + timeStamp + "_";
@@ -374,8 +371,10 @@ public class EditOffer extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == 1 && resultCode == RESULT_OK && null != data){
+        if((requestCode == 1) && resultCode == RESULT_OK && null != data){
             Uri selectedImage = data.getData();
+            photoChanged = true;
+
             String[] filePathColumn = { MediaStore.Images.Media.DATA };
 
             Cursor cursor = getContentResolver().query(selectedImage,
@@ -390,7 +389,44 @@ public class EditOffer extends AppCompatActivity {
         }
 
         if((requestCode == 1 || requestCode == 2) && resultCode == RESULT_OK){
-            Glide.with(getApplicationContext()).load(currentPhotoPath).into((ImageView) findViewById(R.id.img_profile));
+            Glide.with(getApplicationContext()).load(currentPhotoPath).into((ImageView)findViewById(R.id.img_profile));
+        }
+    }
+
+    private void storeDatabase(){
+        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(DISHES_PATH);
+        StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+        Map<String, Object> dishMap = new HashMap<>();
+
+        if(photoChanged && currentPhotoPath != null) {
+            Uri photoUri = Uri.fromFile(new File(currentPhotoPath));
+            StorageReference ref = storageReference.child("images/"+ UUID.randomUUID().toString());
+
+            ref.putFile(photoUri).continueWithTask(task -> {
+                if (!task.isSuccessful()){
+                    throw Objects.requireNonNull(task.getException());
+                }
+                return ref.getDownloadUrl();
+            }).addOnCompleteListener(task -> {
+                if (task.isSuccessful()){
+                    Uri downUri = task.getResult();
+
+                    if(editing)
+                        dishMap.put(keyChild, new DailyOfferItem(name, desc, priceValue, quantValue, downUri.toString()));
+                    else
+                        dishMap.put(Objects.requireNonNull(myRef.push().getKey()), new DailyOfferItem(name, desc, priceValue, quantValue, downUri.toString()));
+
+                    myRef.updateChildren(dishMap);
+                }
+            });
+        }
+        else{
+            if(editing && currentPhotoPath != null)
+                dishMap.put(keyChild, new DailyOfferItem(name, desc, priceValue, quantValue, currentPhotoPath));
+            else
+                dishMap.put(Objects.requireNonNull(myRef.push().getKey()), new DailyOfferItem(name, desc, priceValue, quantValue, null));
+
+            myRef.updateChildren(dishMap);
         }
     }
 
@@ -424,10 +460,8 @@ public class EditOffer extends AppCompatActivity {
             quantButton.setText(Integer.toString(quantValue));
 
         currentPhotoPath = savedInstanceState.getString(Photo);
-        if(currentPhotoPath != null){
-            Glide.with(getApplicationContext()).load(currentPhotoPath).into((ImageView) findViewById(R.id.img_profile));
-                //setPhoto(currentPhotoPath);
-        }
+        if(currentPhotoPath != null)
+            Glide.with(getApplicationContext()).load(currentPhotoPath).into((ImageView)findViewById(R.id.img_profile));
 
         if(savedInstanceState.getBoolean(CameraOpen))
             editPhoto();

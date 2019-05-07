@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name"> Restaurant Management</string>
+    <string name="app_name">APPetit</string>
     <string name="title_home">Home</string>
     <string name="title_profile">Profile</string>
     <string name="title_dailyoffer">Daily Offer</string>
