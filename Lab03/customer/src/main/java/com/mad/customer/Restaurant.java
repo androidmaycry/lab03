@@ -107,4 +107,6 @@ public class Restaurant extends Fragment {
         mAdapter.stopListening();
     }
 
+    public interface OnFragmentInteractionListener {
+    }
 }
