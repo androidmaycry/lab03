@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                                 Intent i = new Intent(MainActivity.this,NavApp.class);
-                                i.putExtra("UID",auth.getUid().toString());
+                                i.putExtra("UID",auth.getUid());
                                 startActivityForResult(i,10);
                             } else {
                                 Toast.makeText(MainActivity.this,"Wrong Username or Password",Toast.LENGTH_LONG);

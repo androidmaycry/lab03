@@ -1,5 +1,6 @@
 package com.mad.customer;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.view.GravityCompat;
@@ -15,6 +16,7 @@ public class NavApp extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private DrawerLayout drawer;
+    private String UID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +36,9 @@ public class NavApp extends AppCompatActivity
                     new Restaurant()).commit();
             navigationView.setCheckedItem(R.id.nav_restaurant);
         }
+
+        Intent i  = getIntent();
+        UID = i.getStringExtra("UID");
 
     }
 
@@ -59,6 +64,14 @@ public class NavApp extends AppCompatActivity
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                         new Order()).commit();
                 break;
+            case R.id.nav_settings:
+                Bundle bundle = new Bundle();
+                bundle.putString("UID",UID);
+                Profile profile = new Profile();
+                profile.setArguments(bundle);
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                        profile).commit();
+
         }
         drawer.closeDrawer(GravityCompat.START);
         return true;
