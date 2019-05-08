@@ -1,70 +1,67 @@
 package com.mad.customer;
 
 import android.os.Bundle;
+
+
+
+import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.support.v4.view.GravityCompat;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.view.MenuItem;
-import android.support.design.widget.NavigationView;
-import android.support.v4.widget.DrawerLayout;
-
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
+import android.util.Log;
+import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 
-    private DrawerLayout drawer;
+
+public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        drawer = findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                    new Restaurant()).commit();
-            navigationView.setCheckedItem(R.id.nav_restaurant);
-        }
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        auth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+
+            }
+        });
+
+
+        TextView email = findViewById(R.id.email);
+        TextView password = findViewById(R.id.password);
+
+        findViewById(R.id.sign_up).setOnClickListener(e -> {
+            Intent i = new Intent(this, EditProfile.class);
+            startActivity(i);
+        });
+
+        findViewById(R.id.sign_in).setOnClickListener(e -> {
+            auth.signInWithEmailAndPassword(email.getText().toString(), password.getText().toString())
+                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                // Sign in success, update UI with the signed-in user's information
+                                Log.d("success", "signInWithEmail:success");
+
+
+                                Intent i = new Intent(MainActivity.this,NavApp.class);
+                                i.putExtra("UID",auth.getUid().toString());
+                                startActivityForResult(i,10);
+                            } else {
+                                Toast.makeText(MainActivity.this,"Wrong Username or Password",Toast.LENGTH_LONG);
+                            }
+                        }
+                    });
+        });
 
     }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.nav_restaurant:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                        new Restaurant()).commit();
-                break;
-            case R.id.nav_order:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                        new Order()).commit();
-                break;
-        }
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
-
-
 }
+
+
