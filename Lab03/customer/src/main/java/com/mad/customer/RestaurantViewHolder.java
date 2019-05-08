@@ -18,6 +18,7 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder implements Vie
     ImageView img;
     int position;
     RestaurantItem current;
+    private String key;
 
 
 
@@ -32,7 +33,7 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder implements Vie
 
         itemView.setOnClickListener(this);
     }
-    void setData (RestaurantItem current, int position){
+    void setData (RestaurantItem current, int position, String key){
         this.name.setText(current.getName());
         this.addr.setText(current.getAddr());
         this.cuisine.setText(current.getCuisine());
@@ -44,10 +45,14 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder implements Vie
                 .into(this.img);
         this.position = position;
         this.current = current;
+        this.key = key;
+
     }
     @Override
     public void onClick(View view) {
         //Toast.makeText(view.getContext(), "Item"+getAdapterPosition(), Toast.LENGTH_LONG).show();
+
+        Toast.makeText(view.getContext(), this.key, Toast.LENGTH_LONG).show();
         Intent intent = new Intent(view.getContext(), Ordering.class);
         intent.putExtra("name", current.getName());
         intent.putExtra("addr", current.getAddr());
@@ -56,6 +61,7 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder implements Vie
         intent.putExtra("email", current.getEmail());
         intent.putExtra("opening", current.getOpening());
         intent.putExtra("img", current.getImg());
+        intent.putExtra("key", this.key);
         view.getContext().startActivity(intent);
     }
 }

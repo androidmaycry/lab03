@@ -1,5 +1,6 @@
 package com.mad.customer;
 
+import android.content.Intent;
 import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -7,10 +8,13 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -21,16 +25,19 @@ import com.squareup.picasso.Picasso;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 
 class ViewHolderDailyOffer extends RecyclerView.ViewHolder{
     private ImageView dishPhoto;
     private TextView dishName, dishDesc, dishPrice, dishQuantity;
     private DishItem current;
     private int position;
+    private View view;
+
 
     ViewHolderDailyOffer(View itemView){
         super(itemView);
-
+        this.view = itemView;
         dishName = itemView.findViewById(R.id.dish_name);
         dishDesc = itemView.findViewById(R.id.dish_desc);
         dishPrice = itemView.findViewById(R.id.dish_price);
@@ -64,9 +71,37 @@ class ViewHolderDailyOffer extends RecyclerView.ViewHolder{
         this.position = position;
         this.current = current;
     }
+
+    public View getView() {
+        return view;
+    }
+    /*
+    @Override
+    public void onClick(View view) {
+        String a = et.getText().toString();
+        if (a.length()>0){
+            int num = Integer.parseInt(et.getText().toString());
+            if (num>current.getQuantity()){
+                Toast.makeText(view.getContext(), "Quantità massima disponibile: "+current.getQuantity(), Toast.LENGTH_LONG).show();
+            }
+            else{
+
+            }
+        }
+        else{
+            Toast.makeText(view.getContext(), "Inserire quantità", Toast.LENGTH_LONG).show();
+        }
+
+    }
+    */
 }
 
 public class Ordering extends AppCompatActivity {
+    private String key;
+    ArrayList<String> keys = new ArrayList<String>();
+    ArrayList<String> names = new ArrayList<String>();
+    ArrayList<String> nums = new ArrayList<String>();
+    ArrayList<String> prices = new ArrayList<String>();
     private RecyclerView recyclerView;
     private FirebaseRecyclerAdapter<DishItem, ViewHolderDailyOffer> mAdapter;
     private RecyclerView.LayoutManager layoutManager;
@@ -76,6 +111,8 @@ public class Ordering extends AppCompatActivity {
                             DishItem.class).build();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ordering);
         recyclerView = findViewById(R.id.dish_recyclerview);
@@ -84,15 +121,20 @@ public class Ordering extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
 
         mAdapter = new FirebaseRecyclerAdapter<DishItem, ViewHolderDailyOffer>(options) {
+
             @Override
             protected void onBindViewHolder(@NonNull ViewHolderDailyOffer holder, int position, @NonNull DishItem model) {
                 holder.setData(model, position);
+                holder.getView().findViewById(R.id.confirm_dish).setOnClickListener(e->{
+                    Toast.makeText(holder.getView().getContext(), "Item: "+ position, Toast.LENGTH_LONG).show();
+                });
+
             }
 
             @NonNull
             @Override
-            public ViewHolderDailyOffer onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.dish_item,parent,false);
+            public ViewHolderDailyOffer onCreateViewHolder(@NonNull final ViewGroup parent, int viewType) {
+                final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.dish_item,parent,false);
                 return new ViewHolderDailyOffer(view);
             }
         };
@@ -109,7 +151,7 @@ public class Ordering extends AppCompatActivity {
         String myEmail = getIntent().getStringExtra("email");
         String myOpening = getIntent().getStringExtra("opening");
         String myImg = getIntent().getStringExtra("img");
-
+        this.key = getIntent().getStringExtra("key");
         setFields(myName, myAddr, myCell, myDescription, myEmail, myOpening, myImg);
 
     }
@@ -148,4 +190,26 @@ public class Ordering extends AppCompatActivity {
         super.onStop();
         mAdapter.stopListening();
     }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == android.R.id.home) {
+            this.finish();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void SetOrderedDish (String key, String name, String num, String price){
+        this.keys.add(key);
+        this.names.add(name);
+        this.nums.add(num);
+        this.prices.add(price);
+    }
 }
+

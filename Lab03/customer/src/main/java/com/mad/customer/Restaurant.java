@@ -61,7 +61,8 @@ public class Restaurant extends Fragment {
         mAdapter = new FirebaseRecyclerAdapter<RestaurantItem, RestaurantViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull RestaurantViewHolder holder, int position, @NonNull RestaurantItem model) {
-                holder.setData(model, position);
+                String key = getRef(position).getKey();
+                holder.setData(model, position, key);
             }
 
             @NonNull

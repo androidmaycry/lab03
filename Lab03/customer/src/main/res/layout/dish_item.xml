@@ -40,7 +40,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginEnd="8dp"
             android:text="Name"
-            card_view:layout_constraintEnd_toStartOf="@+id/edit_offer"
+            card_view:layout_constraintEnd_toStartOf="@+id/confirm_dish"
             card_view:layout_constraintStart_toEndOf="@+id/dish_image"
             card_view:layout_constraintTop_toTopOf="parent" />
 
@@ -52,7 +52,7 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:text="Description"
-            card_view:layout_constraintEnd_toStartOf="@+id/edit_offer"
+            card_view:layout_constraintEnd_toStartOf="@+id/confirm_dish"
             card_view:layout_constraintStart_toEndOf="@+id/dish_image"
             card_view:layout_constraintTop_toBottomOf="@+id/dish_name" />
 
@@ -64,12 +64,12 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:text="Price"
-            card_view:layout_constraintEnd_toStartOf="@+id/edit_offer"
+            card_view:layout_constraintEnd_toStartOf="@+id/confirm_dish"
             card_view:layout_constraintStart_toEndOf="@+id/textView3"
             card_view:layout_constraintTop_toBottomOf="@+id/dish_desc" />
 
         <ImageView
-            android:id="@+id/edit_offer"
+            android:id="@+id/confirm_dish"
             android:layout_width="33dp"
             android:layout_height="33dp"
             android:layout_marginTop="16dp"
@@ -93,20 +93,20 @@
             card_view:layout_constraintTop_toBottomOf="@+id/dish_desc" />
 
         <EditText
-            android:id="@+id/editText"
+            android:id="@+id/num"
             android:layout_width="33dp"
-            android:layout_height="33dp"
+            android:layout_height="38dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
-            android:ems="10"
             android:inputType="number"
+            android:textSize="14sp"
             card_view:layout_constraintBottom_toBottomOf="parent"
             card_view:layout_constraintEnd_toEndOf="parent"
             card_view:layout_constraintHorizontal_bias="0.0"
             card_view:layout_constraintStart_toEndOf="@+id/dish_price"
-            card_view:layout_constraintTop_toBottomOf="@+id/edit_offer"
+            card_view:layout_constraintTop_toBottomOf="@+id/confirm_dish"
             card_view:layout_constraintVertical_bias="0.0" />
 
     </android.support.constraint.ConstraintLayout>
