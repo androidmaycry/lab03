@@ -1,6 +1,7 @@
 package com.mad.appetit;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
 import com.mad.lib.Restaurateur;
 
 import static com.mad.lib.SharedClass.Address;
@@ -69,6 +70,14 @@ public class Profile extends Fragment {
 
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference();
         Query query = myRef.child(RESTAURATEUR_INFO).orderByKey().equalTo(ROOT_UID);
+
+        view.findViewById(R.id.logout).setOnClickListener(e -> {
+            FirebaseAuth.getInstance().signOut();
+
+            Intent mainActivity = new Intent(getContext(), MainActivity.class);
+            mainActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(mainActivity);
+        });
 
         query.addValueEventListener(new ValueEventListener() {
             @Override

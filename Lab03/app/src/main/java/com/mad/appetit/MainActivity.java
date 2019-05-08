@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
             Intent fragment = new Intent(this, FragmentManager.class);
             startActivity(fragment);
+            finish();
         }
     }
 
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
         if(data != null && resultCode == 1){
             Intent fragment = new Intent(this, FragmentManager.class);
             startActivity(fragment);
+            finish();
         }
     }
 }

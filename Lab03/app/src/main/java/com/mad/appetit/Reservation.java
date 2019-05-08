@@ -2,15 +2,11 @@ package com.mad.appetit;
 
 import static com.mad.lib.SharedClass.*;
 
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -31,12 +28,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.mad.lib.SharedClass.DISHES_PATH;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -106,16 +100,6 @@ public class Reservation extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_reservation, container, false);
-
-        /*FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference(RESERVATION_PATH);
-        Map<String, Object> dishMap = new HashMap<>();
-        ArrayList<String> order = new ArrayList<>();
-        order.add("ciao ciao dio cane");
-        ReservationItem reservationItem = new ReservationItem("Federico",
-                "Via Vinadio 14", "3496998347", null, "19:00", order);
-        dishMap.put(Objects.requireNonNull(myRef.push().getKey()), reservationItem);
-        myRef.updateChildren(dishMap);*/
 
         recyclerView = view.findViewById(R.id.ordered_list);
         mAdapter = new FirebaseRecyclerAdapter<ReservationItem, ViewHolderReservation>(options) {
@@ -197,18 +181,46 @@ public class Reservation extends Fragment {
             queryDel.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    if(dataSnapshot.exists()){
-                        DatabaseReference myRefAdd = database.getReference(ACCEPTED_ORDER_PATH);
+                    if (dataSnapshot.exists()) {
+                        DatabaseReference acceptOrder = database.getReference(ACCEPTED_ORDER_PATH);
                         Map<String, Object> orderMap = new HashMap<>();
 
-                        for(DataSnapshot d : dataSnapshot.getChildren()) {
+                        for (DataSnapshot d : dataSnapshot.getChildren()) {
                             ReservationItem reservationItem = d.getValue(ReservationItem.class);
-                            orderMap.put(Objects.requireNonNull(myRefAdd.push().getKey()), reservationItem);
+                            orderMap.put(Objects.requireNonNull(acceptOrder.push().getKey()), reservationItem);
                             d.getRef().removeValue();
                         }
 
-                        //TODO: choose a random riders which assign the order
-                        myRefAdd.updateChildren(orderMap);
+                        acceptOrder.updateChildren(orderMap);
+
+                        // choosing the first available rider which assign the order
+                        Query queryRider = database.getReference(RIDERS_PATH);
+                        queryRider.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                if(dataSnapshot.exists()) {
+                                    String keyRider = "", name = "";
+
+                                    for(DataSnapshot d : dataSnapshot.getChildren()){
+                                        if((boolean)d.child("available").getValue()){
+                                            keyRider = d.getKey();
+                                            name = d.child("rider_info").child("name").getValue(String.class);
+                                            break;
+                                        }
+                                    }
+
+                                    DatabaseReference addOrderToRider = database.getReference(RIDERS_PATH + "/" + keyRider + RIDERS_ORDER);
+                                    addOrderToRider.updateChildren(orderMap);
+
+                                    Toast.makeText(getContext(), "Order assigned to rider " + name, Toast.LENGTH_LONG).show();
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
                     }
                 }
 
