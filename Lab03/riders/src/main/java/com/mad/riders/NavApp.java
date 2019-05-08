@@ -32,7 +32,11 @@ public class NavApp extends AppCompatActivity implements
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
                 return true;
             case R.id.navigation_reservation:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new Orders()).commit();
+                Bundle bundle2 = new Bundle();
+                bundle2.putString("UID",UID);
+                Orders orders = new Orders();
+                orders.setArguments(bundle2);
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, orders).commit();
                 return true;
         }
         return false;

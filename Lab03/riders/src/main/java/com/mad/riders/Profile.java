@@ -71,7 +71,7 @@ public class Profile extends Fragment {
     ImageView imgView;
     View view;
 
-    private final String RIDERS_PATH = "riders/";
+    private final String RIDERS_PATH = "riders/users/";
 
     public Profile() {
         // Required empty public constructor
@@ -102,7 +102,7 @@ public class Profile extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_profile, container, false);
-
+        view.findViewById(R.id.loadingProfile).setVisibility(View.GONE);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 

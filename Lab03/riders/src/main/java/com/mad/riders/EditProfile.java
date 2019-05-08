@@ -108,7 +108,7 @@ public class EditProfile extends AppCompatActivity {
 
     private SharedPreferences user_data, first_check;
 
-    private final String RIDERS_PATH = "riders/";
+    private final String RIDERS_PATH = "riders/users/";
     private FirebaseStorage storage;
     FirebaseDatabase database;
     private StorageReference storageReference;
@@ -117,8 +117,8 @@ public class EditProfile extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        database = FirebaseDatabase.getInstance();
 
+        database = FirebaseDatabase.getInstance();
 
         setContentView(R.layout.activity_edit_profile);
 
@@ -143,17 +143,13 @@ public class EditProfile extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d("SIGNIN", "createUserWithEmail:success");
-
-
-                            uploadImage(auth.getUid().toString());
-
+                            uploadImage(auth.getUid());
                             finish();
                         }
                         else {
                             // If sign in fails, display a message to the user.
                             Log.d("ERROR", "createUserWithEmail:failure", task.getException());
                         }
-
                         // ...
                     }
                 });
@@ -170,10 +166,10 @@ public class EditProfile extends AppCompatActivity {
 
     private void uploadImage(String UID) {
 
-
         if(currentPhotoPath != null)
         {
             final ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setTitle("Uploading...");
             progressDialog.setTitle("Uploading...");
             progressDialog.show();
 
@@ -193,20 +189,26 @@ public class EditProfile extends AppCompatActivity {
                     if (task.isSuccessful()){
                         Uri downUri = task.getResult();
                         Log.d("URL", "onComplete: Url: "+ downUri.toString());
+
                         Map<String, Object> new_user = new HashMap<String, Object>();
                         new_user.put("rider_info",new User("gallottino",name, surname
                                 ,mail,phone,downUri.toString()));
+                        new_user.put("available",true);
                         DatabaseReference myRef = database.getReference(RIDERS_PATH+UID);
                         myRef.updateChildren(new_user);
+                        finish();
                     }
                 }
             });
         }else{
+
             Map<String, Object> new_user = new HashMap<String, Object>();
             new_user.put("rider_info",new User("gallottino",name, surname
                     ,mail,phone,"null"));
+            new_user.put("available",true);
             DatabaseReference myRef = database.getReference(RIDERS_PATH+UID);
             myRef.updateChildren(new_user);
+            finish();
         }
 
     }

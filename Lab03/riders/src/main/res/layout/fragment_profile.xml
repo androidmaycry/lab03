@@ -21,7 +21,6 @@
             android:layout_marginEnd="72dp"
             android:ems="10"
             android:gravity="center_vertical|start"
-            android:hint="Mail address"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/imageView6"
             app:layout_constraintTop_toBottomOf="@+id/surname" />
@@ -33,12 +32,10 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="72dp"
-            android:layout_marginBottom="8dp"
             android:ems="10"
             android:gravity="center_vertical|start"
-            android:hint="Phone"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toEndOf="@+id/title"
             app:layout_constraintTop_toBottomOf="@+id/mail" />
 
@@ -51,7 +48,6 @@
             android:layout_marginEnd="72dp"
             android:ems="10"
             android:gravity="center_vertical|start"
-            android:hint="Surname"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/imageView5"
             app:layout_constraintTop_toBottomOf="@+id/name" />
@@ -67,7 +63,6 @@
             android:ems="10"
             android:gravity="center_vertical|start"
 
-            android:hint="Name"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/imageView3"
             app:layout_constraintTop_toBottomOf="@+id/profile_image" />
@@ -128,6 +123,19 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imageView6" />
 
+        <ProgressBar
+            android:id="@+id/loadingProfile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:indeterminate="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/phone" />
 
     </android.support.constraint.ConstraintLayout>
 </ScrollView>

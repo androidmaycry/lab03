@@ -23,7 +23,7 @@
             android:layout_marginBottom="8dp"
             android:text="Pending orders"
             android:textSize="24sp"
-            app:layout_constraintBottom_toTopOf="@+id/ordered_list"
+            app:layout_constraintBottom_toTopOf="@+id/order_list_pending"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.034"
             app:layout_constraintStart_toStartOf="parent"
@@ -38,14 +38,14 @@
             style="@style/Divider"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/ordered_list"
+            app:layout_constraintBottom_toTopOf="@+id/order_list_pending"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
         <android.support.v7.widget.RecyclerView
-            android:id="@+id/ordered_list"
+            android:id="@+id/order_list_pending"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -72,7 +72,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.036"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/ordered_list"
+            app:layout_constraintTop_toBottomOf="@+id/order_list_pending"
             app:layout_constraintVertical_bias="0.0" />
 
         <View

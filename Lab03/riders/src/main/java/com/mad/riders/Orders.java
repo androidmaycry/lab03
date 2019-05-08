@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,12 +39,14 @@ class ViewHolder extends RecyclerView.ViewHolder {
     public TextView restaurantAddr;
     public TextView customerAdrr;
     public TextView toPay;
+    public View view;
 
     public ViewHolder(View itemView) {
         super(itemView);
         restaurantAddr = itemView.findViewById(R.id.listview_address);
         customerAdrr = itemView.findViewById(R.id.listview_name);
         toPay = itemView.findViewById(R.id.listview_toPay);
+        view = itemView;
     }
 
 
@@ -60,9 +63,12 @@ class ViewHolder extends RecyclerView.ViewHolder {
         Double num = toPay;
         this.toPay.setText(num.toString()+ "$");
     }
+
+    public View getView(){return view;}
 }
 
 class Order{
+    public String orderID;
     public String restaurantAddr;
     public String customerAddr;
     public double toPay;
@@ -70,7 +76,8 @@ class Order{
     // Constructor for Firebase
     public Order(){}
 
-    public Order(String RestaurantAddr,String CustomerAddr, double toPay){
+    public Order(String orderID,String RestaurantAddr,String CustomerAddr, double toPay){
+        this.orderID = orderID;
         this.restaurantAddr = RestaurantAddr;
         this.customerAddr = CustomerAddr;
         this.toPay = toPay;
@@ -82,6 +89,8 @@ class Order{
     public void setCustomerAddr(String customerAddr){ this.customerAddr = customerAddr;}
     public double getToPay(){return toPay;}
     public void setToPay(){this.toPay = toPay;}
+    public String getOrderID(){return orderID;}
+
 }
 
 public class Orders extends Fragment {
@@ -89,18 +98,18 @@ public class Orders extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private final String RIDERS_PATH = "riders/users/";
 
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
-    private RecyclerView recyclerView,recyclerView_accepted;
-    private RecyclerView.Adapter mAdapter,mAdapter_accepted;
     private RecyclerView.LayoutManager layoutManager;
 
-
     private Orders.OnFragmentInteractionListener mListener;
-    private FirebaseRecyclerAdapter<Order, ViewHolder> adapter;
+    private FirebaseRecyclerAdapter<Order, ViewHolder> mAdapter_done;
+    private FirebaseRecyclerAdapter<Order, ViewHolder> mAdapter_pending;
+    private String UID;
 
     public Orders() {
         // Required empty public constructor
@@ -139,36 +148,27 @@ public class Orders extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_orders, container, false);
-
-        /*DEBUG
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        Map<String, Object> new_order = new HashMap<String, Object>();
-        new_order.put("order_info0",new Order("Via Cesana 63"
-                , "Via dei Fiori 7"
-                ,3.65));
-        new_order.put("order_info1",new Order("Via Cesana 10"
-                , "Via dei Fiori 44"
-                ,3.65));
-        new_order.put("order_info2",new Order("Via Cesana 13"
-                , "Via dei Gerani 10"
-                ,3.85));
-        new_order.put("order_info3",new Order("Via Cesana 783"
-                , "Via dei Gerani 11"
-                ,3.85));
-        DatabaseReference myRef = database.getReference("riders/order_tmp/");
-        myRef.updateChildren(new_order);
-        */
-
+        UID = getArguments().getString("UID");
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference query = database.getReference("riders/order_tmp/");
 
-        // TODO: add recycler view
         FirebaseRecyclerOptions<Order> options =
                 new FirebaseRecyclerOptions.Builder<Order>()
-                        .setQuery(query, Order.class)
-                        .build();
+                        .setQuery(query, new SnapshotParser<Order>() {
+                            @NonNull
+                            @Override
+                            public Order parseSnapshot(@NonNull DataSnapshot snapshot) {
+                                Order order = new Order(snapshot.getKey()
+                                        ,(String)snapshot.child("restaurantAddr").getValue()
+                                        ,(String)snapshot.child("customerAddr").getValue()
+                                        ,(Double)snapshot.child("toPay").getValue());
 
-        adapter = new FirebaseRecyclerAdapter<Order, ViewHolder>(options) {
+                                return order;
+                            }
+                        }).build();
+
+
+        mAdapter_pending = new FirebaseRecyclerAdapter<Order, ViewHolder>(options) {
             @Override
             public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                 // Create a new instance of the ViewHolder, in this case we are using a custom
@@ -186,11 +186,14 @@ public class Orders extends Fragment {
                 holder.setCustomerAdrr(model.getCustomerAddr());
                 holder.setRestaurantAddr(model.getRestaurantAddr());
                 holder.setToPay(model.getToPay());
+                holder.getView().findViewById(R.id.confirm_reservation)
+                        .setOnClickListener(e -> acceptOrder(position,model));
             }
         };
+
         layoutManager = new LinearLayoutManager(getContext());
-        RecyclerView recyclerView = view.findViewById(R.id.reservation_list_accepted);
-        recyclerView.setAdapter(adapter);
+        RecyclerView recyclerView = view.findViewById(R.id.order_list_pending);
+        recyclerView.setAdapter(mAdapter_pending);
         recyclerView.setLayoutManager(layoutManager);
         return view;
     }
@@ -202,7 +205,7 @@ public class Orders extends Fragment {
         }
     }
 
-    public void acceptOrder(int pos){
+    public void acceptOrder(int pos,Order done){
 
         AlertDialog reservationDialog = new AlertDialog.Builder(this.getContext()).create();
         LayoutInflater inflater = LayoutInflater.from(this.getContext());
@@ -211,8 +214,12 @@ public class Orders extends Fragment {
 
         view.findViewById(R.id.button_confirm).setOnClickListener(e ->{
 
-            mAdapter.notifyItemRemoved(pos);
-            reservationDialog.dismiss();
+            DatabaseReference query = FirebaseDatabase.getInstance().getReference(RIDERS_PATH);
+            Map<String,Object> order = new HashMap<String,Object>();
+            order.put(done.getOrderID(),done);
+            query.child(UID).child("order_delivered").updateChildren(order);
+            query.child("orders_tmp").child(done.getOrderID()).removeValue();
+
         });
 
         view.findViewById(R.id.button_cancel).setOnClickListener(e ->{
@@ -257,12 +264,12 @@ public class Orders extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        adapter.startListening();
+        mAdapter_pending.startListening();
     }
     @Override
     public void onStop() {
         super.onStop();
-        adapter.stopListening();
+        mAdapter_pending.stopListening();
     }
 
     @Override
@@ -285,7 +292,4 @@ public class Orders extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 
-    public void seeItemList(ReservationItem item){
-
-    }
 }
