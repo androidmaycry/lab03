@@ -111,8 +111,6 @@ public class Ordering extends AppCompatActivity {
                             DishItem.class).build();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ordering);
         recyclerView = findViewById(R.id.dish_recyclerview);

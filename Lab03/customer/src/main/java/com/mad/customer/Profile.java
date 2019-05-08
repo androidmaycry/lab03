@@ -70,7 +70,7 @@ public class Profile extends Fragment {
     ImageView imgView;
     View view;
 
-    private final String RIDERS_PATH = "riders/users/";
+    private final String CUSTOMER_PATH = "customers/users/";
 
     public Profile() {
         // Required empty public constructor
@@ -110,9 +110,9 @@ public class Profile extends Fragment {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference(RIDERS_PATH).child(UID);
+        DatabaseReference myRef = database.getReference(CUSTOMER_PATH).child(UID);
 
-        Log.d("PATH",RIDERS_PATH+UID);
+        Log.d("PATH",CUSTOMER_PATH+UID);
 
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -120,7 +120,7 @@ public class Profile extends Fragment {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
                 User user;
-                user = dataSnapshot.child("rider_info").getValue(User.class);
+                user = dataSnapshot.child("customer_info").getValue(User.class);
                 ((TextView) view.findViewById(R.id.name)).setText(user.getName());
                 ((TextView) view.findViewById(R.id.surname)).setText(user.getSurname());
                 ((TextView) view.findViewById(R.id.mail)).setText(user.getEmail());
