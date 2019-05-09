@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.StrictMode;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -79,6 +80,7 @@ class ViewHolderDailyOffer extends RecyclerView.ViewHolder {
 
 public class Ordering extends AppCompatActivity {
     private String key;
+    private static ArrayList<String> removed = new ArrayList<>();
     ArrayList<String> keys = new ArrayList<String>();
     ArrayList<String> names = new ArrayList<String>();
     ArrayList<String> nums = new ArrayList<String>();
@@ -106,6 +108,11 @@ public class Ordering extends AppCompatActivity {
             @Override
             protected void onBindViewHolder(@NonNull ViewHolderDailyOffer holder, int position, @NonNull DishItem model) {
                 holder.setData(model, position);
+
+                if(removed.contains(Integer.toString(position))) {
+                    ((EditText)holder.getView().findViewById(R.id.num)).setText("");
+                }
+
                 holder.getView().findViewById(R.id.confirm_dish).setOnClickListener(e->{
                     EditText et = holder.getView().findViewById(R.id.num);
                     String a = et.getText().toString();
@@ -113,30 +120,47 @@ public class Ordering extends AppCompatActivity {
                         int num = Integer.parseInt(et.getText().toString());
                         if (num>model.getQuantity()){
                             Toast.makeText(holder.getView().getContext(), "Quantità massima disponibile: "+model.getQuantity(), Toast.LENGTH_LONG).show();
+                            //((EditText)holder.getView().findViewById(R.id.num)).setText("");
                         }
                         else{
-                            names.add(model.getName());
-                            nums.add(a);
-                            prices.add(Float.toString(model.getPrice()));
-                            keys.add(getRef(position).getKey());
-                            Toast.makeText(holder.getView().getContext(), "Aggiunto correttamente", Toast.LENGTH_LONG).show();
-                            if(keys.size()==1){
-                                findViewById(R.id.button2).setBackgroundColor(Color.GREEN); //TODO cambiare tonalità verde
+                            String key = getRef(position).getKey();
+                            if(!keys.contains(key)) {
+                                names.add(model.getName());
+                                nums.add(a);
+                                prices.add(Float.toString(model.getPrice()));
+                                keys.add(key);
+                                Toast.makeText(holder.getView().getContext(), "Aggiunto correttamente", Toast.LENGTH_LONG).show();
+                                if (keys.size() == 1) {
+                                    findViewById(R.id.button2).setBackgroundColor(Color.GREEN); //TODO cambiare tonalità verde
+                                }
+                                //((EditText)holder.getView().findViewById(R.id.num)).setText("");
                             }
-
+                            else{
+                                int pos = keys.indexOf(key);
+                                int new_num = Integer.parseInt(nums.get(pos));
+                                if (new_num>model.getQuantity()){
+                                    Toast.makeText(holder.getView().getContext(), "Quantità massima disponibile: "+model.getQuantity() + "\nGià selezionati: "+Integer.parseInt(nums.get(pos)), Toast.LENGTH_LONG).show();
+                                    //((EditText)holder.getView().findViewById(R.id.num)).setText("");
+                                }
+                                else{
+                                    nums.set(pos, Integer.toString(new_num));
+                                    Toast.makeText(holder.getView().getContext(), "Aggiornato correttamente", Toast.LENGTH_LONG).show();
+                                    //((EditText)holder.getView().findViewById(R.id.num)).setText("");
+                                }
+                            }
                         }
                     }
                     else{
                         Toast.makeText(holder.getView().getContext(), "Inserire quantità", Toast.LENGTH_LONG).show();
                     }
                 });
-
             }
 
             @NonNull
             @Override
             public ViewHolderDailyOffer onCreateViewHolder(@NonNull final ViewGroup parent, int viewType) {
                 final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.dish_item,parent,false);
+
                 return new ViewHolderDailyOffer(view);
             }
         };
@@ -147,15 +171,42 @@ public class Ordering extends AppCompatActivity {
             }
             else{
                 Intent intent = new Intent(this, Confirm.class);
+                intent.putExtra("key", key);
                 intent.putStringArrayListExtra("keys", (ArrayList<String>) keys);
                 intent.putStringArrayListExtra("names", (ArrayList<String>) names);
                 intent.putStringArrayListExtra("prices", (ArrayList<String>) prices);
                 intent.putStringArrayListExtra("nums", (ArrayList<String>) nums);
-                startActivity(intent);
-                finish();
+                startActivityForResult(intent, 0);
+
+                //keys.clear();
+                //names.clear();
+                //prices.clear();
+                //nums.clear();
+                //findViewById(R.id.button2).setBackgroundColor(Color.GRAY);
+                //finish();
             }
         });
         getIncomingIntent();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(data != null && resultCode == 0){
+            removed = data.getStringArrayListExtra("removed");
+
+            for(String s : removed){
+                keys.remove(Integer.parseInt(s));
+                names.remove(Integer.parseInt(s));
+                prices.remove(Integer.parseInt(s));
+                nums.remove(Integer.parseInt(s));
+            }
+        }
+
+        if(resultCode == 1){
+            finish();
+        }
     }
 
     private void getIncomingIntent(){
@@ -219,13 +270,6 @@ public class Ordering extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    public void SetOrderedDish (String key, String name, String num, String price){
-        this.keys.add(key);
-        this.names.add(name);
-        this.nums.add(num);
-        this.prices.add(price);
     }
 }
 

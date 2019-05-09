@@ -52,7 +52,7 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder implements Vie
     public void onClick(View view) {
         //Toast.makeText(view.getContext(), "Item"+getAdapterPosition(), Toast.LENGTH_LONG).show();
 
-        Toast.makeText(view.getContext(), this.key, Toast.LENGTH_LONG).show();
+        //Toast.makeText(view.getContext(), this.key, Toast.LENGTH_LONG).show();
         Intent intent = new Intent(view.getContext(), Ordering.class);
         intent.putExtra("name", current.getName());
         intent.putExtra("addr", current.getAddr());

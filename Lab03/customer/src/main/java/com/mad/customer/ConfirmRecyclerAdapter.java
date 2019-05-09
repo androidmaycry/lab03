@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -15,12 +16,15 @@ public class ConfirmRecyclerAdapter extends RecyclerView.Adapter<ConfirmRecycler
     ArrayList<String> names;
     ArrayList<String> prices;
     ArrayList<String> quantities;
+    Confirm confirm;
     LayoutInflater mInflater;
 
-    public ConfirmRecyclerAdapter(Context context, ArrayList<String> names, ArrayList<String> prices, ArrayList<String> quantities){
+
+    public ConfirmRecyclerAdapter(Context context, ArrayList<String> names, ArrayList<String> prices, ArrayList<String> quantities, Confirm confirm){
         mInflater = LayoutInflater.from(context);
+        this.confirm = confirm;
         this.names = names;
-        this.prices = quantities;
+        this.prices = prices;
         this.quantities = quantities;
     }
 
@@ -30,12 +34,17 @@ public class ConfirmRecyclerAdapter extends RecyclerView.Adapter<ConfirmRecycler
         TextView dish_name;
         TextView dish_quant;
         TextView dish_price;
+        View view_item;
 
         public MyViewHolder(View itemView){
             super(itemView);
+            this.view_item = itemView;
             dish_name = itemView.findViewById(R.id.dish_conf_name);
             dish_price = itemView.findViewById(R.id.dish_conf_price);
             dish_quant = itemView.findViewById(R.id.dish_conf_quantity);
+        }
+        public View getView_item (){
+            return this.view_item;
         }
     }
 
@@ -43,7 +52,6 @@ public class ConfirmRecyclerAdapter extends RecyclerView.Adapter<ConfirmRecycler
     @Override
     public ConfirmRecyclerAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view =  mInflater.inflate(R.layout.dish_confirm_item, viewGroup, false);
-
         return new MyViewHolder(view);
     }
 
@@ -54,8 +62,22 @@ public class ConfirmRecyclerAdapter extends RecyclerView.Adapter<ConfirmRecycler
         String quantity  = quantities.get(position);
         myViewHolder.dish_name.setText(name);
         myViewHolder.dish_quant.setText(quantity);
-        myViewHolder.dish_price.setText(price);
+        myViewHolder.dish_price.setText(price + " €");
+        myViewHolder.getView_item().findViewById(R.id.delete_conf_dish).setOnClickListener(e->{
+            removeItem(position);
+        });
+
     }
+    private void removeItem(int index){
+
+        names.remove(index);
+        prices.remove(index);
+        quantities.remove(index);
+        notifyDataSetChanged();
+        //notifyItemRemoved(index);
+        confirm.deleteItem(index);
+    }
+
 
 
     @Override
