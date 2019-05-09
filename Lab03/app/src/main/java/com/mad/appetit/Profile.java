@@ -93,7 +93,7 @@ public class Profile extends Fragment {
 
                     name = restaurateur.getName();
                     addr = restaurateur.getAddr();
-                    descr = restaurateur.getDescr();
+                    descr = restaurateur.getCuisine();
                     mail = restaurateur.getMail();
                     phone = restaurateur.getPhone();
                     photoUri = restaurateur.getPhotoUri();
