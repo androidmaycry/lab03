@@ -45,7 +45,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-public class SignIn extends AppCompatActivity {
+public class SignUp extends AppCompatActivity {
     private String mail, psw, name, addr, descr, phone;
     private String errMsg = " ";
     private String currentPhotoPath = null;
@@ -75,13 +75,13 @@ public class SignIn extends AppCompatActivity {
                         finish();
                     }
                     else {
-                        Toast.makeText(SignIn.this,"Registration failed. Try again", Toast.LENGTH_LONG).show();
+                        Toast.makeText(SignUp.this,"Registration failed. Try again", Toast.LENGTH_LONG).show();
                         Log.d("SIGN IN", "Error: createUserWithEmail:failure", task.getException());
                     }
                 });
             }
             else{
-                Toast.makeText(SignIn.this, errMsg, Toast.LENGTH_LONG).show();
+                Toast.makeText(SignUp.this, errMsg, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -123,8 +123,8 @@ public class SignIn extends AppCompatActivity {
     }
 
     private void editPhoto(){
-        AlertDialog alertDialog = new AlertDialog.Builder(SignIn.this, R.style.AlertDialogStyle).create();
-        LayoutInflater factory = LayoutInflater.from(SignIn.this);
+        AlertDialog alertDialog = new AlertDialog.Builder(SignUp.this, R.style.AlertDialogStyle).create();
+        LayoutInflater factory = LayoutInflater.from(SignUp.this);
         final View view = factory.inflate(R.layout.custom_dialog, null);
 
         camera_open = true;
