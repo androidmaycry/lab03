@@ -71,7 +71,7 @@
         app:layout_constraintTop_toBottomOf="@+id/listview_address" />
 
     <TextView
-        android:id="@+id/listview_pren"
+        android:id="@+id/order_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -85,16 +85,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/profile_image"
         app:layout_constraintVertical_bias="0.0" />
-
-    <TextView
-        android:id="@+id/textView_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="2dp"
-        android:layout_marginBottom="8dp"
-        android:text="TextView"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/listview_pren" />
 
     <ImageView
         android:id="@+id/open_reservation"
@@ -110,17 +100,12 @@
         android:id="@+id/confirm_reservation"
         android:layout_width="33dp"
         android:layout_height="33dp"
-        android:layout_marginStart="80dp"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:src="@drawable/reservation_confirm"
         android:tint="@color/green"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/delete_reservation"
-        app:layout_constraintHorizontal_bias="0.771"
-        app:layout_constraintStart_toEndOf="@+id/textView_time"
-        app:layout_constraintTop_toBottomOf="@+id/listview_cellphone" />
+        app:layout_constraintEnd_toStartOf="@+id/delete_reservation" />
 
     <ImageView
         android:id="@+id/delete_reservation"

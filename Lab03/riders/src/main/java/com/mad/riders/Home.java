@@ -72,10 +72,7 @@ public class Home extends Fragment {
         // Inflate the layout for this fragment
 
         View view = inflater.inflate(R.layout.fragment_home, container, false);
-        TextView text = view.findViewById(R.id.restaurant_name);
 
-        SharedPreferences user_data = getContext().getSharedPreferences(MyPREF,0);
-        text.setText(user_data.getString("keyName","Please create your profile!"));
 
         return view;
     }

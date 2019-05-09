@@ -13,13 +13,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.firebase.ui.database.SnapshotParser;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.mad.lib.OrderItem;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +42,7 @@ class ViewHolder extends RecyclerView.ViewHolder {
     public TextView restaurantAddr;
     public TextView customerAdrr;
     public TextView toPay;
+    public TextView orderStatus;
     public View view;
 
     public ViewHolder(View itemView) {
@@ -45,6 +50,7 @@ class ViewHolder extends RecyclerView.ViewHolder {
         restaurantAddr = itemView.findViewById(R.id.listview_address);
         customerAdrr = itemView.findViewById(R.id.listview_name);
         toPay = itemView.findViewById(R.id.listview_toPay);
+        orderStatus = itemView.findViewById(R.id.order_status);
         view = itemView;
     }
 
@@ -63,6 +69,14 @@ class ViewHolder extends RecyclerView.ViewHolder {
         this.toPay.setText(num.toString()+ "$");
     }
 
+    public void setStatus(boolean status){
+        if(status){
+            orderStatus.setText("Pending...");
+        }
+        else{
+            orderStatus.setText("Delivering..");
+        }
+    }
     public View getView(){return view;}
 }
 
@@ -99,6 +113,8 @@ public class Orders extends Fragment {
     private static final String ARG_PARAM2 = "param2";
     private final String RIDERS_PATH = "riders/users/";
 
+    private  boolean available;
+
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -107,10 +123,11 @@ public class Orders extends Fragment {
 
     private Orders.OnFragmentInteractionListener mListener;
     private FirebaseRecyclerAdapter<Order, ViewHolder> mAdapter_done;
-    private FirebaseRecyclerAdapter<Order, ViewHolder> mAdapter_pending;
+    private FirebaseRecyclerAdapter<OrderItem, ViewHolder> mAdapter_pending;
     private String UID;
     private FirebaseRecyclerAdapter<Order, ViewHolder> mAdapter_accepted;
     private LinearLayoutManager layoutManager2;
+    private DatabaseReference query1;
 
     public Orders() {
         // Required empty public constructor
@@ -155,41 +172,44 @@ public class Orders extends Fragment {
                 deliveredOrder();
         });
 
+
+        query1 = FirebaseDatabase.getInstance().getReference("riders/users/"+UID);
+
+        query1.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for(DataSnapshot d : dataSnapshot.getChildren()){
+                    if(d.getKey().compareTo("available")== 0) {
+                        available = (boolean) d.getValue();
+                        Log.d("QUERY STATUS", Boolean.toString(available));
+                        if(available){
+                            view.findViewById(R.id.delivered).setVisibility(View.INVISIBLE);
+                            TextView text = view.findViewById(R.id.status);
+                            text.setText("Available");
+                        }
+                        else{
+                            TextView text = view.findViewById(R.id.status);
+                            text.setText("Delivering...");
+                            view.findViewById(R.id.delivered).setVisibility(View.VISIBLE);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference query = database.getReference("riders/users/"+UID+"/pending/");
-        DatabaseReference query2 = FirebaseDatabase.getInstance().getReference("riders/users/"+UID+"/delivering/");
 
-        FirebaseRecyclerOptions<Order> options =
-                new FirebaseRecyclerOptions.Builder<Order>()
-                        .setQuery(query, new SnapshotParser<Order>() {
-                            @NonNull
-                            @Override
-                            public Order parseSnapshot(@NonNull DataSnapshot snapshot) {
-                                Log.d("PARSE",snapshot.getValue().toString());
-                                Order order = new Order(snapshot.getKey()
-                                        ,(String)snapshot.child("addr").getValue()
-                                        ,(String)snapshot.child("name").getValue()
-                                        ,10.75);
-                                return order;
-                            }
-                        }).build();
+        FirebaseRecyclerOptions<OrderItem> options =
+                new FirebaseRecyclerOptions.Builder<OrderItem>()
+                        .setQuery(query, OrderItem.class).build();
 
-        FirebaseRecyclerOptions<Order> options2 =
-                new FirebaseRecyclerOptions.Builder<Order>()
-                        .setQuery(query2, new SnapshotParser<Order>() {
-                            @NonNull
-                            @Override
-                            public Order parseSnapshot(@NonNull DataSnapshot snapshot) {
-                                Order order = new Order(snapshot.getKey()
-                                        ,(String)snapshot.child("customerAddr").getValue()
-                                        ,(String)snapshot.child("restaurantAddr").getValue()
-                                        ,10.75);
-                                return order;
-                            }
-                        }).build();
+        mAdapter_pending = new FirebaseRecyclerAdapter<OrderItem, ViewHolder>(options) {
 
-
-        mAdapter_pending = new FirebaseRecyclerAdapter<Order, ViewHolder>(options2) {
             @Override
             public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                 // Create a new instance of the ViewHolder, in this case we are using a custom
@@ -201,52 +221,25 @@ public class Orders extends Fragment {
             }
 
             @Override
-            protected void onBindViewHolder(ViewHolder holder, int position, Order model) {
+            protected void onBindViewHolder(ViewHolder holder, int position, OrderItem model) {
                 // Bind the Chat object to the ChatHolder
                 // ...
-                holder.setCustomerAdrr(model.getCustomerAddr());
-                holder.setRestaurantAddr(model.getRestaurantAddr());
-                holder.setToPay(model.getToPay());
+                holder.setCustomerAdrr(model.getAddrCustomer());
+                holder.setRestaurantAddr(model.getAddrRestaurant());
+                //holder.setToPay(Double.parseDouble(model.totPrice));
+                holder.setStatus(available);
                 holder.getView().findViewById(R.id.confirm_reservation)
-                        .setOnClickListener(e -> acceptOrder(position,model));
+                        .setOnClickListener(e -> acceptOrder());
+                holder.getView().findViewById(R.id.delete_reservation)
+                        .setOnClickListener(e -> deletingOrder());
             }
         };
-
 
         layoutManager = new LinearLayoutManager(getContext());
         RecyclerView recyclerView = view.findViewById(R.id.order_list_pending);
         recyclerView.setAdapter(mAdapter_pending);
         recyclerView.setLayoutManager(layoutManager);
 
-        mAdapter_accepted = new FirebaseRecyclerAdapter<Order, ViewHolder>(options) {
-            @Override
-            public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                // Create a new instance of the ViewHolder, in this case we are using a custom
-                // layout called R.layout.message for each item
-                View view = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.reservation_listview, parent, false);
-
-                return new ViewHolder(view);
-            }
-
-            @Override
-            protected void onBindViewHolder(ViewHolder holder, int position, Order model) {
-                // Bind the Chat object to the ChatHolder
-                // ...
-                holder.setCustomerAdrr(model.getCustomerAddr());
-                holder.setRestaurantAddr(model.getRestaurantAddr());
-                holder.setToPay(model.getToPay());
-                holder.getView().findViewById(R.id.confirm_reservation)
-                        .setOnClickListener(e -> acceptOrder(position,model));
-                Log.d("RECYCLER","SONO ENTRATO");
-            }
-        };
-
-
-        layoutManager = new LinearLayoutManager(getContext());
-        RecyclerView recyclerView2 = view.findViewById(R.id.order_delivering);
-        recyclerView2.setAdapter(mAdapter_accepted);
-        recyclerView2.setLayoutManager(layoutManager);
         return view;
     }
 
@@ -257,7 +250,7 @@ public class Orders extends Fragment {
         }
     }
 
-    public void acceptOrder(int pos,Order done){
+    public void acceptOrder(){
 
         AlertDialog reservationDialog = new AlertDialog.Builder(this.getContext()).create();
         LayoutInflater inflater = LayoutInflater.from(this.getContext());
@@ -265,21 +258,26 @@ public class Orders extends Fragment {
 
 
         view.findViewById(R.id.button_confirm).setOnClickListener(e ->{
-        DatabaseReference query2 = FirebaseDatabase.getInstance().getReference(RIDERS_PATH+"/"+UID+"/pending/");
-        DatabaseReference query = FirebaseDatabase.getInstance().getReference(RIDERS_PATH);
-        Map<String,Object> order = new HashMap<String,Object>();
-        order.put(done.getOrderID(),done);
-        query.child(UID).child("delivering").updateChildren(order);
-        query2.removeValue();
-        reservationDialog.dismiss();
+            if(!available){
+                Toast.makeText(getContext(),"You have alredy accepted this order!",Toast.LENGTH_LONG).show();
+            }else {
+                DatabaseReference query = FirebaseDatabase.getInstance().getReference(RIDERS_PATH + "/" + UID);
 
-    });
+                Map<String, Object> status = new HashMap<String, Object>();
+                status.put("available", false);
+                query.updateChildren(status);
+            }
 
-        view.findViewById(R.id.button_cancel).setOnClickListener(e ->{
-        DatabaseReference query = FirebaseDatabase.getInstance().getReference(RIDERS_PATH+"/"+UID+"/pending/");
-        query.removeValue();
-        reservationDialog.dismiss();
-    });
+            reservationDialog.dismiss();
+        });
+
+        view.findViewById(R.id.button_cancel).setOnClickListener(e -> {
+
+            DatabaseReference query = FirebaseDatabase.getInstance().getReference(RIDERS_PATH + "/" + UID + "/pending/");
+            query.removeValue();
+            reservationDialog.dismiss();
+
+        });
 
         reservationDialog.setView(view);
         reservationDialog.setTitle("Confirm Orders?");
@@ -295,8 +293,16 @@ public class Orders extends Fragment {
 
 
         view.findViewById(R.id.button_confirm).setOnClickListener(e ->{
-            DatabaseReference query = FirebaseDatabase.getInstance().getReference(RIDERS_PATH+"/"+UID+"/delivering/");
+
+            DatabaseReference query = FirebaseDatabase.getInstance().getReference(RIDERS_PATH + "/" + UID + "/pending/");
             query.removeValue();
+
+            DatabaseReference query2 = FirebaseDatabase.getInstance().getReference(RIDERS_PATH + "/" + UID);
+
+            Map<String, Object> status = new HashMap<String, Object>();
+            status.put("available", true);
+            query2.updateChildren(status);
+
             reservationDialog.dismiss();
         });
 
@@ -310,6 +316,34 @@ public class Orders extends Fragment {
         reservationDialog.show();
     }
 
+    public void deletingOrder(){
+
+        AlertDialog reservationDialog = new AlertDialog.Builder(this.getContext()).create();
+        LayoutInflater inflater = LayoutInflater.from(this.getContext());
+        final View view = inflater.inflate(R.layout.reservation_dialog, null);
+
+
+        view.findViewById(R.id.button_confirm).setOnClickListener(e ->{
+            if(!available){
+                Toast.makeText(getContext(),"You can't remove order now!",Toast.LENGTH_LONG).show();
+            }
+            else {
+                DatabaseReference query = FirebaseDatabase.getInstance().getReference(RIDERS_PATH + "/" + UID + "/pending/");
+                query.removeValue();
+                reservationDialog.dismiss();
+            }
+            reservationDialog.dismiss();
+        });
+
+        view.findViewById(R.id.button_cancel).setOnClickListener(e ->{
+            reservationDialog.dismiss();
+        });
+
+        reservationDialog.setView(view);
+        reservationDialog.setTitle("Refuse Order?");
+
+        reservationDialog.show();
+    }
 
     @Override
     public void onAttach(Context context) {
