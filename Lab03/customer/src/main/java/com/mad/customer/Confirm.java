@@ -6,7 +6,9 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -18,6 +20,7 @@ import java.util.HashMap;
 public class Confirm extends AppCompatActivity {
 
     private ArrayList<String> removed = new ArrayList<>();
+    private String time = "";
     ArrayList<String> keys;
     ArrayList<String> names;
     ArrayList<String> prices;
@@ -33,14 +36,19 @@ public class Confirm extends AppCompatActivity {
         setContentView(R.layout.activity_confirm);
 
         findViewById(R.id.confirm_order_button).setOnClickListener(e->{
-            DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("order");
-            HashMap<String, Object> orderMap = new HashMap<>();
+            time = ((EditText)findViewById(R.id.time_edit)).getText().toString();
+            if(time.trim().length() > 0){
+                DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("order");
+                HashMap<String, Object> orderMap = new HashMap<>();
 
-            orderMap.put(myRef.push().getKey(), new DishItem(names.get(0), "", Float.parseFloat(prices.get(0)), Integer.parseInt(nums.get(0)), ""));
-            myRef.updateChildren(orderMap);
+                orderMap.put(myRef.push().getKey(), new DishItem(names.get(0), "", Float.parseFloat(prices.get(0)), Integer.parseInt(nums.get(0)), ""));
+                myRef.updateChildren(orderMap);
 
-            setResult(1);
-            finish();
+                setResult(1);
+                finish();
+            }
+            else
+                Toast.makeText(this, "Please select desired time", Toast.LENGTH_LONG).show();
         });
         findViewById(R.id.back_order_button).setOnClickListener(w->{
             setRemovedItem();
