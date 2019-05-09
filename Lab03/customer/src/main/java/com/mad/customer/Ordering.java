@@ -1,6 +1,7 @@
 package com.mad.customer;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -27,7 +28,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 
-class ViewHolderDailyOffer extends RecyclerView.ViewHolder{
+class ViewHolderDailyOffer extends RecyclerView.ViewHolder {
     private ImageView dishPhoto;
     private TextView dishName, dishDesc, dishPrice, dishQuantity;
     private DishItem current;
@@ -35,7 +36,7 @@ class ViewHolderDailyOffer extends RecyclerView.ViewHolder{
     private View view;
 
 
-    ViewHolderDailyOffer(View itemView){
+    ViewHolderDailyOffer(View itemView) {
         super(itemView);
         this.view = itemView;
         dishName = itemView.findViewById(R.id.dish_name);
@@ -45,25 +46,24 @@ class ViewHolderDailyOffer extends RecyclerView.ViewHolder{
         dishPhoto = itemView.findViewById(R.id.dish_image);
     }
 
-    void setData(DishItem current, int position){
+    void setData(DishItem current, int position) {
         InputStream inputStream = null;
 
         this.dishName.setText(current.getName());
         this.dishDesc.setText(current.getDesc());
         this.dishPrice.setText(current.getPrice() + " €");
         //this.dishQuantity.setText(String.valueOf(current.getQuantity()));
-        if(current.getPhotoUri() != null) {
-            try{
+        if (current.getPhotoUri() != null) {
+            try {
                 StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
                 StrictMode.setThreadPolicy(policy);
 
                 inputStream = new URL(current.getPhotoUri()).openStream();
-                if(inputStream != null)
+                if (inputStream != null)
                     Glide.with(itemView.getContext()).load(current.getPhotoUri()).into(dishPhoto);
                 else
                     Glide.with(itemView.getContext()).load(R.drawable.hamburger).into(dishPhoto);
-            }
-            catch (IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -75,25 +75,6 @@ class ViewHolderDailyOffer extends RecyclerView.ViewHolder{
     public View getView() {
         return view;
     }
-    /*
-    @Override
-    public void onClick(View view) {
-        String a = et.getText().toString();
-        if (a.length()>0){
-            int num = Integer.parseInt(et.getText().toString());
-            if (num>current.getQuantity()){
-                Toast.makeText(view.getContext(), "Quantità massima disponibile: "+current.getQuantity(), Toast.LENGTH_LONG).show();
-            }
-            else{
-
-            }
-        }
-        else{
-            Toast.makeText(view.getContext(), "Inserire quantità", Toast.LENGTH_LONG).show();
-        }
-
-    }
-    */
 }
 
 public class Ordering extends AppCompatActivity {
@@ -115,6 +96,8 @@ public class Ordering extends AppCompatActivity {
         setContentView(R.layout.activity_ordering);
         recyclerView = findViewById(R.id.dish_recyclerview);
         //recyclerView.setHasFixedSize(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         layoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
 
@@ -124,7 +107,28 @@ public class Ordering extends AppCompatActivity {
             protected void onBindViewHolder(@NonNull ViewHolderDailyOffer holder, int position, @NonNull DishItem model) {
                 holder.setData(model, position);
                 holder.getView().findViewById(R.id.confirm_dish).setOnClickListener(e->{
-                    Toast.makeText(holder.getView().getContext(), "Item: "+ position, Toast.LENGTH_LONG).show();
+                    EditText et = holder.getView().findViewById(R.id.num);
+                    String a = et.getText().toString();
+                    if (a.length()>0){
+                        int num = Integer.parseInt(et.getText().toString());
+                        if (num>model.getQuantity()){
+                            Toast.makeText(holder.getView().getContext(), "Quantità massima disponibile: "+model.getQuantity(), Toast.LENGTH_LONG).show();
+                        }
+                        else{
+                            names.add(model.getName());
+                            nums.add(a);
+                            prices.add(Float.toString(model.getPrice()));
+                            keys.add(getRef(position).getKey());
+                            Toast.makeText(holder.getView().getContext(), "Aggiunto correttamente", Toast.LENGTH_LONG).show();
+                            if(keys.size()==1){
+                                findViewById(R.id.button2).setBackgroundColor(Color.GREEN); //TODO cambiare tonalità verde
+                            }
+
+                        }
+                    }
+                    else{
+                        Toast.makeText(holder.getView().getContext(), "Inserire quantità", Toast.LENGTH_LONG).show();
+                    }
                 });
 
             }
@@ -137,6 +141,20 @@ public class Ordering extends AppCompatActivity {
             }
         };
         recyclerView.setAdapter(mAdapter);
+        findViewById(R.id.button2).setOnClickListener(w->{
+            if (keys.size()==0){
+                Toast.makeText(this, "Inserire un piatto.", Toast.LENGTH_LONG);
+            }
+            else{
+                Intent intent = new Intent(this, Confirm.class);
+                intent.putStringArrayListExtra("keys", (ArrayList<String>) keys);
+                intent.putStringArrayListExtra("names", (ArrayList<String>) names);
+                intent.putStringArrayListExtra("prices", (ArrayList<String>) prices);
+                intent.putStringArrayListExtra("nums", (ArrayList<String>) nums);
+                startActivity(intent);
+                finish();
+            }
+        });
         getIncomingIntent();
     }
 
