@@ -12,10 +12,13 @@ public final class SharedClass {
     public static final String Price = "keyEuroPrice";
     public static final String Photo ="keyPhoto";
     public static final String Phone ="keyPhone";
+    public static final String Time ="keyTime";
     public static final String Quantity = "keyQuantity";
     public static final String CameraOpen = "keyCameraDialog";
     public static final String PriceOpen = "keyPriceDialog";
     public static final String QuantOpen = "keyQuantityDialog";
+    public static final String TimeClose = "keyTimeClose";
+    public static final String TimeOpen = "keyTimeOpen";
 
     /**
      * Useful values key to retrieve data from activity (Intent)

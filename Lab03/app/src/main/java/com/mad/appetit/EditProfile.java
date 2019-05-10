@@ -78,7 +78,7 @@ public class EditProfile extends AppCompatActivity {
         addr = ((EditText)findViewById(R.id.address)).getText().toString();
         desc = ((EditText)findViewById(R.id.description)).getText().toString();
         mail = ((EditText)findViewById(R.id.mail)).getText().toString();
-        phone = ((EditText)findViewById(R.id.phone)).getText().toString();
+        phone = ((EditText)findViewById(R.id.time_text)).getText().toString();
 
         if(name.trim().length() == 0){
             error_msg = "Fill name";
@@ -117,7 +117,7 @@ public class EditProfile extends AppCompatActivity {
         ((EditText)findViewById(R.id.address)).setText(addr);
         ((EditText)findViewById(R.id.description)).setText(desc);
         ((EditText)findViewById(R.id.mail)).setText(mail);
-        ((EditText)findViewById(R.id.phone)).setText(phone);
+        ((EditText)findViewById(R.id.time_text)).setText(phone);
 
         InputStream inputStream = null;
 
@@ -286,16 +286,16 @@ public class EditProfile extends AppCompatActivity {
                 if (task.isSuccessful()){
                     Uri downUri = task.getResult();
 
-                    profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, phone, downUri.toString()));
+                    profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, "", phone, downUri.toString()));
                     myRef.updateChildren(profileMap);
                 }
             });
         }
         else{
             if(currentPhotoPath != null)
-                profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, phone, currentPhotoPath));
+                profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, "", phone, currentPhotoPath));
             else
-                profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, phone,  null));
+                profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, "", phone,  null));
 
             myRef.updateChildren(profileMap);
         }
@@ -309,7 +309,7 @@ public class EditProfile extends AppCompatActivity {
         savedInstanceState.putString(Address, ((EditText)findViewById(R.id.address)).getText().toString());
         savedInstanceState.putString(Description, ((EditText)findViewById(R.id.description)).getText().toString());
         savedInstanceState.putString(Mail, ((EditText)findViewById(R.id.mail)).getText().toString());
-        savedInstanceState.putString(Phone, ((EditText)findViewById(R.id.phone)).getText().toString());
+        savedInstanceState.putString(Phone, ((EditText)findViewById(R.id.time_text)).getText().toString());
         savedInstanceState.putString(Photo, currentPhotoPath);
         savedInstanceState.putBoolean(CameraOpen, camera_open);
     }
@@ -322,7 +322,7 @@ public class EditProfile extends AppCompatActivity {
         ((EditText)findViewById(R.id.address)).setText(savedInstanceState.getString(Address));
         ((EditText)findViewById(R.id.description)).setText(savedInstanceState.getString(Description));
         ((EditText)findViewById(R.id.mail)).setText(savedInstanceState.getString(Mail));
-        ((EditText)findViewById(R.id.phone)).setText(savedInstanceState.getString(Phone));
+        ((EditText)findViewById(R.id.time_text)).setText(savedInstanceState.getString(Phone));
 
         currentPhotoPath = savedInstanceState.getString(Photo);
         if(currentPhotoPath != null)

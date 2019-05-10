@@ -40,7 +40,7 @@
             app:layout_constraintTop_toBottomOf="@+id/mail" />
 
         <EditText
-            android:id="@+id/phone"
+            android:id="@+id/time_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="44dp"
@@ -75,7 +75,7 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="44dp"
             android:ems="10"
-            android:hint="Description"
+            android:hint="Cuisine"
             android:inputType="textMultiLine|textCapSentences"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -101,7 +101,7 @@
             android:layout_width="140dp"
             android:layout_height="55dp"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:layout_marginEnd="16dp"
             android:backgroundTint="@color/colorPrimary"
             android:text="Confirm"
@@ -109,7 +109,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.497"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/phone" />
+            app:layout_constraintTop_toBottomOf="@+id/opening_time" />
 
         <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/img_profile"
@@ -138,6 +138,31 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="1.0"
             app:srcCompat="@drawable/ic_add_circle_black_24dp" />
+
+        <Button
+            android:id="@+id/opening_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="8dp"
+            android:text="Opening time"
+            app:layout_constraintEnd_toStartOf="@+id/opening_time2"
+            app:layout_constraintHorizontal_bias="0.356"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/time_text" />
+
+        <Button
+            android:id="@+id/opening_time2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="44dp"
+            android:layout_marginBottom="8dp"
+            android:text="Closing time"
+            app:layout_constraintBottom_toTopOf="@+id/button"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/time_text" />
 
     </android.support.constraint.ConstraintLayout>
 </ScrollView>

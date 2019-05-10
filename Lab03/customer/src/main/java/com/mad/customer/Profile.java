@@ -1,12 +1,14 @@
 package com.mad.customer;
 
+import static com.mad.lib.SharedClass.CUSTOMER_PATH;
+import static com.mad.lib.SharedClass.ROOT_UID;
+import com.mad.lib.User;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -24,15 +26,11 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.mad.lib.User;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -44,43 +42,19 @@ import java.util.List;
  */
 
 public class Profile extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
     private OnFragmentInteractionListener mListener;
-
-    private static final String MyPREF = "User_Data";
-    private static final String CheckPREF = "First Run";
-    private static final String Name = "keyName";
-    private static final String Surname = "keySurname";
-    private static final String Address = "keyAddress";
-    private static final String Description = "keyDescription";
-    private static final String Email = "keyEmail";
-    private static final String Phone = "keyPhone";
-    private static final String Photo = "keyPhoto";
-    private static final String FirstRun = "keyRun";
-
-    ImageView imgView;
-    View view;
-
-    private final String CUSTOMER_PATH = "customers/users/";
+    private ImageView imgView;
+    private View view;
 
     public Profile() {
         // Required empty public constructor
     }
 
     // TODO: Rename and change types and number of parameters
-    public static Profile newInstance(String param1, String param2) {
+    public static Profile newInstance() {
         Profile fragment = new Profile();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+
         fragment.setArguments(args);
         return fragment;
     }
@@ -88,11 +62,6 @@ public class Profile extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-
     }
 
     @Override
@@ -104,22 +73,17 @@ public class Profile extends Fragment {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-
-        String UID = getArguments().getString("ROOT_UID");
-
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference(CUSTOMER_PATH).child(UID);
+        DatabaseReference myRef = database.getReference(CUSTOMER_PATH).child(ROOT_UID);
 
-        Log.d("PATH",CUSTOMER_PATH+UID);
+        Log.d("PATH",CUSTOMER_PATH+ROOT_UID);
 
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                User user;
-                user = dataSnapshot.child("customer_info").getValue(User.class);
+                User user = dataSnapshot.child("customer_info").getValue(User.class);
+
                 ((TextView) view.findViewById(R.id.name)).setText(user.getName());
                 ((TextView) view.findViewById(R.id.surname)).setText(user.getSurname());
                 ((TextView) view.findViewById(R.id.mail)).setText(user.getEmail());
@@ -133,20 +97,16 @@ public class Profile extends Fragment {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
             }
-
 
             @Override
             public void onCancelled(DatabaseError error) {
-                // Failed to read value
                 Log.w("MAIN", "Failed to read value.", error.toException());
             }
         });
 
         return view;
     }
-
 
     private void setPhoto(String photoPath) throws IOException {
         File imgFile = new File(photoPath);

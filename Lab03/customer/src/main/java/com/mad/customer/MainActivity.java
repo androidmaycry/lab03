@@ -28,13 +28,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        auth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
-            }
-        });
-
 
         TextView email = findViewById(R.id.email);
         TextView password = findViewById(R.id.password);
@@ -45,32 +38,29 @@ public class MainActivity extends AppCompatActivity {
         });
 
         if(auth.getCurrentUser()!= null){
+            ROOT_UID = auth.getUid();
+
             Intent i = new Intent(MainActivity.this,NavApp.class);
-            i.putExtra("ROOT_UID",auth.getUid());
-            startActivityForResult(i,10);
+            startActivity(i);
 
             finish();
         }
 
         findViewById(R.id.sign_in).setOnClickListener(e -> {
             auth.signInWithEmailAndPassword(email.getText().toString(), password.getText().toString())
-                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                // Sign in success, update UI with the signed-in user's information
-                                Log.d("success", "signInWithEmail:success");
-                                ROOT_UID = auth.getUid();
+                    .addOnCompleteListener(this, task -> {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d("success", "signInWithEmail:success");
+                            ROOT_UID = auth.getUid();
 
-                                Intent i = new Intent(MainActivity.this,NavApp.class);
-                                i.putExtra("ROOT_UID",auth.getUid());
-                                startActivityForResult(i,10);
+                            Intent i = new Intent(MainActivity.this,NavApp.class);
+                            i.putExtra("ROOT_UID",auth.getUid());
+                            startActivityForResult(i,10);
 
-
-                                finish();
-                            } else {
-                                Toast.makeText(MainActivity.this,"Wrong Username or Password",Toast.LENGTH_LONG).show();
-                            }
+                            finish();
+                        } else {
+                            Toast.makeText(MainActivity.this,"Wrong Username or Password",Toast.LENGTH_LONG).show();
                         }
                     });
         });
@@ -82,16 +72,6 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if(resultCode == 1){
-            Intent fragment = new Intent(this, NavApp.class);
-            startActivity(fragment);
-            finish();
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if(!ROOT_UID.equals("")){
             Intent fragment = new Intent(this, NavApp.class);
             startActivity(fragment);
             finish();

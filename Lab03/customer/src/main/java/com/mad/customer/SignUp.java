@@ -95,12 +95,6 @@ public class SignUp extends AppCompatActivity {
         setContentView(R.layout.activity_sign_up);
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        auth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
-            }
-        });
 
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
@@ -108,28 +102,21 @@ public class SignUp extends AppCompatActivity {
         Button confirm_reg = findViewById(R.id.back_order_button);
         confirm_reg.setOnClickListener(e -> {
             if(checkFields()){
+                auth.createUserWithEmailAndPassword(mail,psw).addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        ROOT_UID = auth.getUid();
 
-                auth.createUserWithEmailAndPassword(mail,psw).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d("SIGNIN", "createUserWithEmail:success");
-                            uploadImage(auth.getUid());
-                            ROOT_UID = auth.getUid();
-                            Intent i = new Intent();
-                            setResult(1, i);
+                        uploadImage();
 
-                            finish();
-                        }
-                        else {
-                            // If sign in fails, display a message to the user.
-                            Log.d("ERROR", "createUserWithEmail:failure", task.getException());
-                        }
-                        // ...
+                        Intent i = new Intent();
+                        setResult(1, i);
+
+                        finish();
+                    }
+                    else {
+                        Log.d("ERROR", "createUserWithEmail:failure", task.getException());
                     }
                 });
-
             }
             else{
                 Toast.makeText(getApplicationContext(), error_msg, Toast.LENGTH_LONG).show();
@@ -140,16 +127,14 @@ public class SignUp extends AppCompatActivity {
         findViewById(R.id.img_profile).setOnClickListener(e -> editPhoto());
     }
 
-    private void uploadImage(String UID) {
-
-        if(currentPhotoPath != null)
-        {
+    private void uploadImage() {
+        if(currentPhotoPath != null) {
             final ProgressDialog progressDialog = new ProgressDialog(this);
             progressDialog.setTitle("Uploading...");
             progressDialog.setTitle("Uploading...");
             progressDialog.show();
 
-            StorageReference ref = storageReference.child("images/").child("customer/").child(UID);
+            StorageReference ref = storageReference.child("images/").child("customer/").child(ROOT_UID);
             url = Uri.fromFile(new File(currentPhotoPath));
             ref.putFile(url).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
                 @Override
@@ -169,9 +154,8 @@ public class SignUp extends AppCompatActivity {
                         Map<String, Object> new_user = new HashMap<String, Object>();
                         new_user.put("customer_info",new User("malanti",name, surname
                                 ,mail,phone,address,downUri.toString()));
-                        DatabaseReference myRef = database.getReference(CUSTOMER_PATH +UID);
+                        DatabaseReference myRef = database.getReference(CUSTOMER_PATH).child(ROOT_UID);
                         myRef.updateChildren(new_user);
-                        finish();
                     }
                 }
             });
@@ -180,9 +164,8 @@ public class SignUp extends AppCompatActivity {
             Map<String, Object> new_user = new HashMap<String, Object>();
             new_user.put("customer_info",new User("","gallottino",name, surname
                     ,mail,phone,"null"));
-            DatabaseReference myRef = database.getReference(CUSTOMER_PATH +UID);
+            DatabaseReference myRef = database.getReference(CUSTOMER_PATH).child(ROOT_UID);
             myRef.updateChildren(new_user);
-            finish();
         }
 
     }

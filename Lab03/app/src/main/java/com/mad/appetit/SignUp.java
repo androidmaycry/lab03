@@ -12,8 +12,11 @@ import static com.mad.lib.SharedClass.PERMISSION_GALLERY_REQUEST;
 import static com.mad.lib.SharedClass.Photo;
 import static com.mad.lib.SharedClass.RESTAURATEUR_INFO;
 import static com.mad.lib.SharedClass.ROOT_UID;
+import static com.mad.lib.SharedClass.TimeClose;
+import static com.mad.lib.SharedClass.TimeOpen;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -30,8 +33,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.NumberPicker;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -49,8 +54,14 @@ public class SignUp extends AppCompatActivity {
     private String mail, psw, name, addr, descr, phone;
     private String errMsg = " ";
     private String currentPhotoPath = null;
+    private String openingTime, closingTime;
+
+    private Button openingTimeButton;
+    private Button closingTimeButton;
 
     private boolean camera_open = false;
+    private boolean timeOpen_open = false;
+    private boolean timeClose_open = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +72,12 @@ public class SignUp extends AppCompatActivity {
 
         findViewById(R.id.plus).setOnClickListener(p -> editPhoto());
         findViewById(R.id.img_profile).setOnClickListener(e -> editPhoto());
+
+        openingTimeButton = findViewById(R.id.opening_time);
+        openingTimeButton.setOnClickListener(h -> setOpeningTimeDialog());
+
+        closingTimeButton = findViewById(R.id.opening_time2);
+        closingTimeButton.setOnClickListener(h -> setClosingTimeDialog());
 
         findViewById(R.id.button).setOnClickListener(e -> {
             if(checkFields()){
@@ -92,7 +109,7 @@ public class SignUp extends AppCompatActivity {
         name = ((EditText)findViewById(R.id.name)).getText().toString();
         addr = ((EditText)findViewById(R.id.address)).getText().toString();
         descr = ((EditText)findViewById(R.id.description)).getText().toString();
-        phone = ((EditText)findViewById(R.id.phone)).getText().toString();
+        phone = ((EditText)findViewById(R.id.time_text)).getText().toString();
 
         if(mail.trim().length() == 0 || !android.util.Patterns.EMAIL_ADDRESS.matcher(mail).matches()){
             errMsg = "Invalid Mail";
@@ -205,6 +222,103 @@ public class SignUp extends AppCompatActivity {
         return image;
     }
 
+    private String[] setTimeValue(){
+        String[] cent = new String[100];
+        for(int i=0; i<100; i++){
+            if(i<10) {
+                cent[i] = "0" +i;
+            }
+            else{
+                cent[i] = ""+i;
+            }
+        }
+        return cent;
+    }
+
+    private void setOpeningTimeDialog(){
+        AlertDialog openingTimeDialog = new AlertDialog.Builder(this).create();
+        LayoutInflater inflater = LayoutInflater.from(SignUp.this);
+        final View viewOpening = inflater.inflate(R.layout.opening_time_dialog, null);
+
+        timeOpen_open = true;
+
+        NumberPicker hour = viewOpening.findViewById(R.id.hour_picker);
+        NumberPicker min = viewOpening.findViewById(R.id.min_picker);
+
+        openingTimeDialog.setView(viewOpening);
+
+        openingTimeDialog.setButton(AlertDialog.BUTTON_POSITIVE,"OK", (dialog, which) -> {
+            timeOpen_open = false;
+
+            int hourValue = hour.getValue();
+            int minValue = min.getValue();
+
+            openingTime = hourValue + ":" + minValue;
+
+            openingTimeButton.setText(openingTime);
+        });
+        openingTimeDialog.setButton(DialogInterface.BUTTON_NEGATIVE,"CANCEL", (dialog, which) -> {
+            timeOpen_open = false;
+            dialog.dismiss();
+        });
+
+        String[] hours = setTimeValue();
+        hour.setDisplayedValues(hours);
+        hour.setMinValue(0);
+        hour.setMaxValue(23);
+        hour.setValue(0);
+
+        String[] mins = setTimeValue();
+        min.setDisplayedValues(mins);
+        min.setMinValue(0);
+        min.setMaxValue(59);
+        min.setValue(0);
+
+        openingTimeDialog.show();
+    }
+
+    private void setClosingTimeDialog(){
+        AlertDialog closingTimeDialog = new AlertDialog.Builder(this).create();
+        LayoutInflater inflater = LayoutInflater.from(SignUp.this);
+        final View viewClosing = inflater.inflate(R.layout.closing_time_dialog, null);
+
+        timeClose_open = true;
+
+        NumberPicker hour = viewClosing.findViewById(R.id.hour_picker);
+        NumberPicker min = viewClosing.findViewById(R.id.min_picker);
+
+        closingTimeDialog.setView(viewClosing);
+
+        closingTimeDialog.setButton(AlertDialog.BUTTON_POSITIVE,"OK", (dialog, which) -> {
+            timeClose_open = false;
+
+            int hourValue = hour.getValue();
+            int minValue = min.getValue();
+
+            closingTime = hourValue + ":" + minValue;
+
+            closingTimeButton.setText(closingTime);
+        });
+        closingTimeDialog.setButton(DialogInterface.BUTTON_NEGATIVE,"CANCEL", (dialog, which) -> {
+            timeClose_open = false;
+            dialog.dismiss();
+        });
+
+        String[] hours = setTimeValue();
+        hour.setDisplayedValues(hours);
+        hour.setMinValue(0);
+        hour.setMaxValue(23);
+        hour.setValue(0);
+
+        String[] mins = setTimeValue();
+        min.setDisplayedValues(mins);
+        min.setMinValue(0);
+        min.setMaxValue(59);
+        min.setValue(0);
+
+        closingTimeDialog.show();
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
@@ -269,13 +383,15 @@ public class SignUp extends AppCompatActivity {
                 if (task.isSuccessful()){
                     Uri downUri = task.getResult();
 
-                    restMap.put(ROOT_UID, new Restaurateur(mail, name, addr, descr, phone, downUri.toString()));
+                    restMap.put(ROOT_UID, new Restaurateur(mail, name, addr, descr,
+                            openingTime + " - " + closingTime, phone, downUri.toString()));
                     myRef.updateChildren(restMap);
                 }
             });
         }
         else{
-            restMap.put(ROOT_UID, new Restaurateur(mail, name, addr, descr, phone, null));
+            restMap.put(ROOT_UID, new Restaurateur(mail, name, addr, descr,
+                    openingTime + " - " + closingTime, phone, null));
             myRef.updateChildren(restMap);
         }
     }
@@ -288,6 +404,8 @@ public class SignUp extends AppCompatActivity {
         savedInstanceState.putString(Description, ((EditText)findViewById(R.id.description)).getText().toString());
         savedInstanceState.putString(Photo, currentPhotoPath);
         savedInstanceState.putBoolean(CameraOpen, camera_open);
+        savedInstanceState.putBoolean(TimeOpen, timeOpen_open);
+        savedInstanceState.putBoolean(TimeClose, timeClose_open);
     }
 
     @Override
@@ -304,5 +422,11 @@ public class SignUp extends AppCompatActivity {
 
         if(savedInstanceState.getBoolean(CameraOpen))
             editPhoto();
+
+        if(savedInstanceState.getBoolean(TimeOpen))
+            setOpeningTimeDialog();
+
+        if(savedInstanceState.getBoolean(TimeClose))
+            setClosingTimeDialog();
     }
 }

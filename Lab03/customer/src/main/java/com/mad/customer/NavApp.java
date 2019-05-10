@@ -2,7 +2,8 @@ package com.mad.customer;
 
 import static com.mad.lib.SharedClass.CUSTOMER_PATH;
 import static com.mad.lib.SharedClass.user;
-import android.content.Intent;
+import static com.mad.lib.SharedClass.ROOT_UID;
+
 import android.net.Uri;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
@@ -22,10 +23,6 @@ public class NavApp extends AppCompatActivity implements
         Profile.OnFragmentInteractionListener,
         Order.OnFragmentInteractionListener{
 
-
-    public String ROOT_UID;
-    private static final String CheckPREF = "First Run";
-    private Profile profile;
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = item ->  {
 
@@ -34,19 +31,10 @@ public class NavApp extends AppCompatActivity implements
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new Restaurant()).commit();
                 return true;
             case R.id.navigation_profile:
-                Bundle bundle = new Bundle();
-                bundle.putString("ROOT_UID", ROOT_UID);
-                Profile profile = new Profile();
-                profile.setArguments(bundle);
-
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, profile).commit();
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new Profile()).commit();
                 return true;
             case R.id.navigation_reservation:
-                Bundle bundle2 = new Bundle();
-                bundle2.putString("ROOT_UID", ROOT_UID);
-                Order orders = new Order();
-                orders.setArguments(bundle2);
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, orders).commit();
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new Order()).commit();
                 return true;
         }
         return false;

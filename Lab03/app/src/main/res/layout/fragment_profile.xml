@@ -4,9 +4,7 @@
     android:id="@+id/myScrollView1"
     android:layout_width="fill_parent" android:layout_height="fill_parent"
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".MainActivity"
@@ -27,7 +25,21 @@
             app:layout_constraintTop_toBottomOf="@+id/address" />
 
         <TextView
-            android:id="@+id/phone"
+            android:id="@+id/time_text"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="72dp"
+            android:ems="10"
+            android:gravity="center_vertical|start"
+            android:hint="Time"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/time"
+            app:layout_constraintTop_toBottomOf="@+id/phone2" />
+
+        <TextView
+            android:id="@+id/phone2"
             android:layout_width="0dp"
             android:layout_height="42dp"
             android:layout_marginStart="16dp"
@@ -138,6 +150,16 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imageView6" />
 
+        <ImageView
+            android:id="@+id/time"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="44dp"
+            android:layout_marginTop="8dp"
+            android:src="@drawable/time_icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/title" />
+
         <Button
             android:id="@+id/logout"
             android:layout_width="wrap_content"
@@ -163,7 +185,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="24dp"
             android:layout_marginEnd="16dp"
             android:background="@drawable/border"
             android:ems="2"
@@ -176,7 +198,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/phone" />
+            app:layout_constraintTop_toBottomOf="@+id/time_text" />
 
 
     </android.support.constraint.ConstraintLayout>

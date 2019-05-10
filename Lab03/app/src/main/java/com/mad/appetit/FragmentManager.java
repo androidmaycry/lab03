@@ -63,16 +63,6 @@ public class FragmentManager extends AppCompatActivity implements DailyOffer.OnF
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fragment_manager);
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference(RESERVATION_PATH);
-        Map<String, Object> dishMap = new HashMap<>();
-        ArrayList<String> order = new ArrayList<>();
-        order.add("ciao ciao dio cane");
-        ReservationItem reservationItem = new ReservationItem("Federico",
-                "Via Vinadio 14", "3496998347", null, "19:00", order);
-        dishMap.put(Objects.requireNonNull(myRef.push().getKey()), reservationItem);
-        myRef.updateChildren(dishMap);
-
         checkBadge();
 
         navigation = (BottomNavigationView) findViewById(R.id.navigation);

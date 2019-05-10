@@ -12,6 +12,8 @@ import static com.mad.lib.SharedClass.Phone;
 import static com.mad.lib.SharedClass.Photo;
 import static com.mad.lib.SharedClass.RESTAURATEUR_INFO;
 import static com.mad.lib.SharedClass.ROOT_UID;
+import static com.mad.lib.SharedClass.Time;
+
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -50,7 +52,7 @@ import java.util.Objects;
  */
 
 public class Profile extends Fragment {
-    private String name, addr, descr, mail, phone, photoUri;
+    private String name, addr, descr, mail, phone, photoUri, time;
     private OnFragmentInteractionListener mListener;
 
     public Profile() {
@@ -97,12 +99,14 @@ public class Profile extends Fragment {
                     mail = restaurateur.getMail();
                     phone = restaurateur.getPhone();
                     photoUri = restaurateur.getPhotoUri();
+                    time = restaurateur.getOpeningTime();
 
                     ((TextView)view.findViewById(R.id.name)).setText(name);
                     ((TextView)view.findViewById(R.id.address)).setText(addr);
                     ((TextView)view.findViewById(R.id.description)).setText(descr);
                     ((TextView)view.findViewById(R.id.mail)).setText(mail);
-                    ((TextView)view.findViewById(R.id.phone)).setText(phone);
+                    ((TextView)view.findViewById(R.id.phone2)).setText(phone);
+                    ((TextView)view.findViewById(R.id.time_text)).setText(time);
 
                     try{
                         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -149,6 +153,7 @@ public class Profile extends Fragment {
                 i.putExtra(Mail, mail);
                 i.putExtra(Phone, phone);
                 i.putExtra(Photo, photoUri);
+                i.putExtra(Time, time);
 
                 startActivity(i);
                 return true;
