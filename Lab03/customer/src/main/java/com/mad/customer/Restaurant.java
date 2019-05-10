@@ -90,6 +90,7 @@ public class Restaurant extends Fragment {
         inflater.inflate(R.menu.search, menu);
         final MenuItem searchItem = menu.findItem(R.id.search);
         final SearchView searchView = (SearchView) searchItem.getActionView();
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -135,7 +136,7 @@ public class Restaurant extends Fragment {
                                                             null);
                                                 }
                                             }
-                                            Log.d("PROVA", ""+newText+" and "+searchRest);
+
                                             return searchRest;
                                         }
                                     }).build();
@@ -165,6 +166,7 @@ public class Restaurant extends Fragment {
                 return false;
             }
         });
+
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -175,27 +177,84 @@ public class Restaurant extends Fragment {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-
-
         switch(id){
             case R.id.search:
-                //TODO ricerca
+                return true;
 
-                /*SearchView sv = (SearchView) item.getActionView();
-                String ciao = (String) sv.getQuery();
+            case R.id.cuisine_fra:
+                setFilter("French");
+                return true;
 
-                Log.d("CIAO", ""+ciao);*/
+            case R.id.cuisine_ita:
+                setFilter("Italian");
+                return true;
 
-                //Toast.makeText(getContext(), ciao, Toast.LENGTH_LONG).show();
-
+            case R.id.cuisine_jap:
+                setFilter("Japanese");
                 return true;
 
             default:
                 return super.onOptionsItemSelected(item);
-
-
         }
     }
+
+    private void setFilter(String filter){
+        onStop();
+        options = new FirebaseRecyclerOptions.Builder<Restaurateur>()
+                .setQuery(FirebaseDatabase.getInstance().getReference().child("restaurants"), new SnapshotParser<Restaurateur>(){
+                    @NonNull
+                    @Override
+                    public Restaurateur parseSnapshot(@NonNull DataSnapshot snapshot) {
+                        Restaurateur searchRest = new Restaurateur();
+
+                        if (snapshot.child("cuisine").exists() && snapshot.child("cuisine").getValue().toString().equals(filter)) {
+
+                            if (snapshot.child("photoUri").getValue() != null) {
+                                searchRest = new Restaurateur(snapshot.child("mail").getValue().toString(),
+                                        snapshot.child("name").getValue().toString(),
+                                        snapshot.child("addr").getValue().toString(),
+                                        snapshot.child("cuisine").getValue().toString(),
+                                        snapshot.child("openingTime").getValue().toString(),
+                                        snapshot.child("phone").getValue().toString(),
+                                        snapshot.child("photoUri").getValue().toString());
+                            } else {
+                                searchRest = new Restaurateur(snapshot.child("mail").getValue().toString(),
+                                        snapshot.child("name").getValue().toString(),
+                                        snapshot.child("addr").getValue().toString(),
+                                        snapshot.child("cuisine").getValue().toString(),
+                                        snapshot.child("phone").getValue().toString(),
+                                        snapshot.child("openingTime").getValue().toString(),
+                                        null);
+                            }
+                        }
+                        return searchRest;
+                    }
+                }).build();
+
+        mAdapter = new FirebaseRecyclerAdapter<Restaurateur, RestaurantViewHolder>(options) {
+            @Override
+            protected void onBindViewHolder(@NonNull RestaurantViewHolder holder, int position, @NonNull Restaurateur model) {
+                String key = getRef(position).getKey();
+                if(model.getName().equals("")){
+                    holder.itemView.findViewById(R.id.restaurant).setLayoutParams(new FrameLayout.LayoutParams(0,0));
+                    //holder.itemView.setLayoutParams(new ConstraintLayout.LayoutParams(0,0));
+                }
+                else {
+                    holder.setData(model, position, key);
+                }
+            }
+
+            @NonNull
+            @Override
+            public RestaurantViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.restaurant_item,parent,false);
+                return new RestaurantViewHolder(view);
+            }
+        };
+        recyclerView.setAdapter(mAdapter);
+        onStart();
+    }
+
     @Override
     public void onStart() {
         super.onStart();

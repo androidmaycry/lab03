@@ -8,20 +8,22 @@
         app:showAsAction="always"
         app:actionViewClass="android.widget.SearchView" />
     <item
-        android:id="@+id/action_restaurant_name"
+        android:id="@+id/cuisine_ita"
         android:orderInCategory="100"
-        android:title="@string/restaurant_name"
+        android:title="Italian"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_cuisine"
+        android:id="@+id/cuisine_jap"
         android:orderInCategory="100"
-        android:title="@string/cuisine"
+        android:title="Japanese"
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_address"
+        android:id="@+id/cuisine_fra"
         android:orderInCategory="100"
-        android:title="@string/address"
+        android:title="French"
         app:showAsAction="never" />
+
+
 
 </menu>
