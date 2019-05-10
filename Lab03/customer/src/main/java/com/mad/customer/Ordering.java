@@ -121,8 +121,7 @@ public class Ordering extends AppCompatActivity {
                     if (a.length()>0){
                         int num = Integer.parseInt(et.getText().toString());
                         if (num>model.getQuantity()){
-                            Toast.makeText(holder.getView().getContext(), "Quantità massima disponibile: "+model.getQuantity(), Toast.LENGTH_LONG).show();
-                            //((EditText)holder.getView().findViewById(R.id.num)).setText("");
+                            Toast.makeText(holder.getView().getContext(), "Max available quantity: "+model.getQuantity(), Toast.LENGTH_LONG).show();
                         }
                         else{
                             String key = getRef(position).getKey();
@@ -131,29 +130,27 @@ public class Ordering extends AppCompatActivity {
                                 nums.add(a);
                                 prices.add(Float.toString(model.getPrice()));
                                 keys.add(key);
-                                Toast.makeText(holder.getView().getContext(), "Aggiunto correttamente", Toast.LENGTH_LONG).show();
+                                Toast.makeText(holder.getView().getContext(), "Added correctly", Toast.LENGTH_LONG).show();
                                 if (keys.size() == 1) {
                                     findViewById(R.id.button2).setBackgroundColor(Color.GREEN); //TODO cambiare tonalità verde
                                 }
-                                //((EditText)holder.getView().findViewById(R.id.num)).setText("");
                             }
                             else{
                                 int pos = keys.indexOf(key);
                                 int new_num = Integer.parseInt(nums.get(pos));
                                 if (new_num>model.getQuantity()){
-                                    Toast.makeText(holder.getView().getContext(), "Quantità massima disponibile: "+model.getQuantity() + "\nGià selezionati: "+Integer.parseInt(nums.get(pos)), Toast.LENGTH_LONG).show();
-                                    //((EditText)holder.getView().findViewById(R.id.num)).setText("");
+                                    Toast.makeText(holder.getView().getContext(), "Max available quantity: "+model.getQuantity() + "\nGià selezionati: "+Integer.parseInt(nums.get(pos)), Toast.LENGTH_LONG).show();
+
                                 }
                                 else{
                                     nums.set(pos, Integer.toString(new_num));
-                                    Toast.makeText(holder.getView().getContext(), "Aggiornato correttamente", Toast.LENGTH_LONG).show();
-                                    //((EditText)holder.getView().findViewById(R.id.num)).setText("");
+                                    Toast.makeText(holder.getView().getContext(), "Updated correctly", Toast.LENGTH_LONG).show();
                                 }
                             }
                         }
                     }
                     else{
-                        Toast.makeText(holder.getView().getContext(), "Inserire quantità", Toast.LENGTH_LONG).show();
+                        Toast.makeText(holder.getView().getContext(), "Insert quantity", Toast.LENGTH_LONG).show();
                     }
                 });
             }

@@ -4,13 +4,19 @@ import com.mad.lib.User;
 import com.mad.lib.SharedClass.*;
 
 import com.mad.lib.OrderItem;
+
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static com.mad.lib.SharedClass.ACCEPTED_ORDER_PATH;
+import static com.mad.lib.SharedClass.TimeOpen;
 import static com.mad.lib.SharedClass.user;
 
 public class Confirm extends AppCompatActivity {
@@ -39,6 +46,9 @@ public class Confirm extends AppCompatActivity {
     private RecyclerView recyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
+    private String desiredTime = "";
+    private Button desiredTimeButton;
+    private boolean timeOpen_open = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,16 +56,17 @@ public class Confirm extends AppCompatActivity {
         setContentView(R.layout.activity_confirm);
 
         getIncomingIntent();
-
+        desiredTimeButton =  findViewById(R.id.desired_time);
+        desiredTimeButton.setOnClickListener(l->{setDesiredTimeDialog();});
         findViewById(R.id.confirm_order_button).setOnClickListener(e->{
-            time = ((EditText)findViewById(R.id.time_edit)).getText().toString();
-            if(time.trim().length() > 0){
+            //time = ((EditText)findViewById(R.id.time_edit)).getText().toString();
+            if(desiredTime.trim().length() > 0){
 
                 //TODO controlla formato orario
                 DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(ACCEPTED_ORDER_PATH);
                 HashMap<String, Object> orderMap = new HashMap<>();
 
-                orderMap.put(myRef.push().getKey(), new OrderItem(user.getName(), user.getAddr(), restAddr, user.getPhone(), time,tot, photo, names));
+                orderMap.put(myRef.push().getKey(), new OrderItem(user.getName(), user.getAddr(), restAddr, user.getPhone(), desiredTime,tot, photo, names));
                 myRef.updateChildren(orderMap);
 
                 setResult(1);
@@ -111,7 +122,60 @@ public class Confirm extends AppCompatActivity {
             finish();
         }
     }
+    private String[] setTimeValue(){
+        String[] cent = new String[100];
+        for(int i=0; i<100; i++){
+            if(i<10) {
+                cent[i] = "0" +i;
+            }
+            else{
+                cent[i] = ""+i;
+            }
+        }
+        return cent;
+    }
 
+    private void setDesiredTimeDialog(){
+        AlertDialog openingTimeDialog = new AlertDialog.Builder(this).create();
+        LayoutInflater inflater = LayoutInflater.from(Confirm.this);
+        final View viewOpening = inflater.inflate(R.layout.opening_time_dialog, null);
+
+        timeOpen_open = true;
+
+        NumberPicker hour = viewOpening.findViewById(R.id.hour_picker);
+        NumberPicker min = viewOpening.findViewById(R.id.min_picker);
+
+        openingTimeDialog.setView(viewOpening);
+
+        openingTimeDialog.setButton(AlertDialog.BUTTON_POSITIVE,"OK", (dialog, which) -> {
+            timeOpen_open = false;
+
+            int hourValue = hour.getValue();
+            int minValue = min.getValue();
+
+            desiredTime = hourValue + ":" + minValue;
+
+            desiredTimeButton.setText(desiredTime);
+        });
+        openingTimeDialog.setButton(DialogInterface.BUTTON_NEGATIVE,"CANCEL", (dialog, which) -> {
+            timeOpen_open = false;
+            dialog.dismiss();
+        });
+
+        String[] hours = setTimeValue();
+        hour.setDisplayedValues(hours);
+        hour.setMinValue(0);
+        hour.setMaxValue(23);
+        hour.setValue(0);
+
+        String[] mins = setTimeValue();
+        min.setDisplayedValues(mins);
+        min.setMinValue(0);
+        min.setMaxValue(59);
+        min.setValue(0);
+
+        openingTimeDialog.show();
+    }
     @Override
     public void onBackPressed() {
         //super.onBackPressed();
@@ -123,5 +187,20 @@ public class Confirm extends AppCompatActivity {
         Intent intent = new Intent();
         intent.putStringArrayListExtra("removed", removed);
         setResult(0, intent);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+
+        savedInstanceState.putBoolean(TimeOpen, timeOpen_open);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+
+        super.onRestoreInstanceState(savedInstanceState);
+        if(savedInstanceState.getBoolean(TimeOpen))
+            setDesiredTimeDialog();
     }
 }

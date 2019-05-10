@@ -1,19 +1,25 @@
 package com.mad.customer;
 
+import com.firebase.ui.database.SnapshotParser;
+import com.google.firebase.database.Query;
 import com.mad.lib.Restaurateur;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,6 +34,8 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.view.View.INVISIBLE;
 
 
 public class Restaurant extends Fragment {
@@ -80,6 +88,83 @@ public class Restaurant extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.search, menu);
+        final MenuItem searchItem = menu.findItem(R.id.search);
+        final SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                //Toast.makeText(getContext(), query, Toast.LENGTH_LONG).show();
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                onStop();
+                if(newText.length()==0){
+                    options =
+                            new FirebaseRecyclerOptions.Builder<Restaurateur>()
+                                    .setQuery(FirebaseDatabase.getInstance().getReference().child("restaurants"),
+                                            Restaurateur.class).build();
+                }
+                else {
+                    options =
+                            new FirebaseRecyclerOptions.Builder<Restaurateur>()
+                                    .setQuery(FirebaseDatabase.getInstance().getReference().child("restaurants"), new SnapshotParser<Restaurateur>(){
+                                        @NonNull
+                                        @Override
+                                        public Restaurateur parseSnapshot(@NonNull DataSnapshot snapshot) {
+                                            Restaurateur searchRest = new Restaurateur();
+
+                                            if (snapshot.child("name").exists() && snapshot.child("name").getValue().toString().contains(newText)) {
+
+                                                if (snapshot.child("photoUri").getValue() != null) {
+                                                    searchRest = new Restaurateur(snapshot.child("mail").getValue().toString(),
+                                                            snapshot.child("name").getValue().toString(),
+                                                            snapshot.child("addr").getValue().toString(),
+                                                            snapshot.child("cuisine").getValue().toString(),
+                                                            snapshot.child("openingTime").getValue().toString(),
+                                                            snapshot.child("phone").getValue().toString(),
+                                                            snapshot.child("photoUri").getValue().toString());
+                                                } else {
+                                                    searchRest = new Restaurateur(snapshot.child("mail").getValue().toString(),
+                                                            snapshot.child("name").getValue().toString(),
+                                                            snapshot.child("addr").getValue().toString(),
+                                                            snapshot.child("cuisine").getValue().toString(),
+                                                            snapshot.child("phone").getValue().toString(),
+                                                            snapshot.child("openingTime").getValue().toString(),
+                                                            null);
+                                                }
+                                            }
+                                            Log.d("PROVA", ""+newText+" and "+searchRest);
+                                            return searchRest;
+                                        }
+                                    }).build();
+                }
+                mAdapter = new FirebaseRecyclerAdapter<Restaurateur, RestaurantViewHolder>(options) {
+                    @Override
+                    protected void onBindViewHolder(@NonNull RestaurantViewHolder holder, int position, @NonNull Restaurateur model) {
+                        String key = getRef(position).getKey();
+                        if(model.getName().equals("")){
+                            holder.itemView.findViewById(R.id.restaurant).setLayoutParams(new FrameLayout.LayoutParams(0,0));
+                            //holder.itemView.setLayoutParams(new ConstraintLayout.LayoutParams(0,0));
+                        }
+                        else {
+                            holder.setData(model, position, key);
+                        }
+                    }
+
+                    @NonNull
+                    @Override
+                    public RestaurantViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.restaurant_item,parent,false);
+                        return new RestaurantViewHolder(view);
+                    }
+                };
+                recyclerView.setAdapter(mAdapter);
+                onStart();
+                return false;
+            }
+        });
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -90,12 +175,26 @@ public class Restaurant extends Fragment {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
 
-        return super.onOptionsItemSelected(item);
+
+        switch(id){
+            case R.id.search:
+                //TODO ricerca
+
+                /*SearchView sv = (SearchView) item.getActionView();
+                String ciao = (String) sv.getQuery();
+
+                Log.d("CIAO", ""+ciao);*/
+
+                //Toast.makeText(getContext(), ciao, Toast.LENGTH_LONG).show();
+
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+
+
+        }
     }
     @Override
     public void onStart() {
