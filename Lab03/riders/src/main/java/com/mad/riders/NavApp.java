@@ -85,7 +85,7 @@ public class NavApp extends AppCompatActivity implements
         UID = i.getStringExtra("UID");
 
         value = true;
-        /* DEBUG */
+        /* TODO: DEBUG */
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("riders/users/"+UID+"/pending/");
         Map<String, Object> dishMap = new HashMap<>();

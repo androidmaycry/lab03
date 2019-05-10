@@ -1,22 +1,18 @@
 package com.mad.customer;
 
+import com.bumptech.glide.Glide;
 import com.mad.lib.User;
 
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.icu.text.SimpleDateFormat;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
@@ -31,98 +27,49 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+
+import static com.mad.lib.SharedClass.*;
 
 public class EditProfile extends AppCompatActivity {
-    private static final String MyPREF = "User_Data";
-    private static final String CheckPREF = "First Run";
-    private static final String Name = "keyName";
-    private static final String Address = "keyAddress";
-    private static final String Description = "keyDescription";
-    private static final String Email = "keyEmail";
-    private static final String Phone = "keyPhone";
-    private static final String Photo = "keyPhoto";
-    private static final String FirstRun = "keyRun";
-    private static final String DialogOpen ="keyDialog";
-
-    private static final int PERMISSION_GALLERY_REQUEST = 1;
-    private boolean dialog_open = false;
-
     private String name;
     private String surname;
     private String mail;
     private String phone;
     private String currentPhotoPath;
-    private String psw;
-    private String psw_confirm;
+    private String address;
+
+    private boolean dialog_open = false;
 
     private String error_msg;
-    private Uri url;
 
-    private SharedPreferences user_data, first_check;
-
-    private final String CUSTOMER_PATH = "customers/users/";
-    private FirebaseStorage storage;
-    FirebaseDatabase database;
-    private StorageReference storageReference;
-
+    private FirebaseDatabase database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_edit_profile);
 
         database = FirebaseDatabase.getInstance();
 
-        setContentView(R.layout.activity_edit_profile);
-
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        auth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
-            }
-        });
-
-        storage = FirebaseStorage.getInstance();
-        storageReference = storage.getReference();
+        getData();
 
         Button confirm_reg = findViewById(R.id.back_order_button);
         confirm_reg.setOnClickListener(e -> {
             if(checkFields()){
-
-                auth.createUserWithEmailAndPassword(mail,psw).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d("SIGNIN", "createUserWithEmail:success");
-                            uploadImage(auth.getUid());
-                            finish();
-                        }
-                        else {
-                            // If sign in fails, display a message to the user.
-                            Log.d("ERROR", "createUserWithEmail:failure", task.getException());
-                        }
-                        // ...
-                    }
-                });
-
+                uploadImage();
             }
             else{
                 Toast.makeText(getApplicationContext(), error_msg, Toast.LENGTH_LONG).show();
@@ -133,51 +80,111 @@ public class EditProfile extends AppCompatActivity {
         findViewById(R.id.img_profile).setOnClickListener(e -> editPhoto());
     }
 
-    private void uploadImage(String UID) {
+    private void getData(){
+        name = user.getName();
+        surname = user.getSurname();
+        address = user.getAddr();
+        mail = user.getEmail();
+        phone = user.getPhone();
+        currentPhotoPath = user.getPhotoPath();
 
-        if(currentPhotoPath != null)
-        {
-            final ProgressDialog progressDialog = new ProgressDialog(this);
-            progressDialog.setTitle("Uploading...");
-            progressDialog.setTitle("Uploading...");
-            progressDialog.show();
+        ((EditText)findViewById(R.id.name)).setText(name);
+        ((EditText)findViewById(R.id.home_address)).setText(address);
+        ((EditText)findViewById(R.id.mail)).setText(mail);
+        ((EditText)findViewById(R.id.phone2)).setText(phone);
+        ((EditText)findViewById(R.id.surname)).setText(surname);
 
-            StorageReference ref = storageReference.child("images/").child("customer/").child(UID);
-            url = Uri.fromFile(new File(currentPhotoPath));
-            ref.putFile(url).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                @Override
-                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                    if (!task.isSuccessful()){
-                        throw task.getException();
-                    }
-                    return ref.getDownloadUrl();
-                }
-            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-                @Override
-                public void onComplete(@NonNull Task<Uri> task) {
-                    if (task.isSuccessful()){
-                        Uri downUri = task.getResult();
-                        Log.d("URL", "onComplete: Url: "+ downUri.toString());
+        InputStream inputStream = null;
+        try{
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
 
-                        Map<String, Object> new_user = new HashMap<String, Object>();
-                        new_user.put("customer_info",new User("", "gallottino",name, surname
-                                ,mail,phone,downUri.toString()));
-                        DatabaseReference myRef = database.getReference(CUSTOMER_PATH +UID);
-                        myRef.updateChildren(new_user);
-                        finish();
-                    }
-                }
-            });
-        }else{
+            inputStream = new URL(currentPhotoPath).openStream();
+            if(inputStream != null)
+                Glide.with(getApplicationContext()).load(currentPhotoPath).into((ImageView)findViewById(R.id.img_profile));
+            else
+                ((ImageView)findViewById(R.id.img_profile)).setImageResource(R.drawable.person);
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+    }
 
-            Map<String, Object> new_user = new HashMap<String, Object>();
-            new_user.put("customer_info",new User("","gallottino",name, surname
-                    ,mail,phone,"null"));
-            DatabaseReference myRef = database.getReference(CUSTOMER_PATH +UID);
-            myRef.updateChildren(new_user);
-            finish();
+    private boolean checkFields(){
+        name = ((EditText)findViewById(R.id.name)).getText().toString();
+        surname = ((EditText)findViewById(R.id.surname)).getText().toString();
+        mail = ((EditText)findViewById(R.id.mail)).getText().toString();
+        phone = ((EditText)findViewById(R.id.phone2)).getText().toString();
+        address = ((EditText)findViewById(R.id.home_address)).getText().toString();
+
+        if(name.trim().length() == 0){
+            error_msg = "Insert name";
+            return false;
         }
 
+        if(surname.trim().length() == 0){
+            error_msg = "Insert address";
+            return false;
+        }
+
+        if(mail.trim().length() == 0 || !android.util.Patterns.EMAIL_ADDRESS.matcher(mail).matches()){
+            error_msg = "Insert e-mail";
+            return false;
+        }
+
+        if(phone.trim().length() == 0){
+            error_msg = "Insert phone number";
+            return false;
+        }
+
+        if(address.trim().length() == 0){
+            error_msg = "Fill address";
+            return false;
+        }
+
+        return true;
+    }
+
+    private void uploadImage() {
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        DatabaseReference myRef = database.getReference(CUSTOMER_PATH+"/"+ROOT_UID);
+
+        progressDialog.setTitle("Updating profile...");
+        progressDialog.show();
+
+        if(currentPhotoPath != null) {
+            Uri url = Uri.fromFile(new File(currentPhotoPath));
+            StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+            StorageReference ref = storageReference.child("images/"+ UUID.randomUUID().toString());
+            ref.putFile(url).continueWithTask(task -> {
+                if (!task.isSuccessful()){
+                    throw task.getException();
+                }
+                return ref.getDownloadUrl();
+            }).addOnCompleteListener(task -> {
+                if (task.isSuccessful()){
+                    Uri downUri = task.getResult();
+                    Log.d("URL", "onComplete: Url: "+ downUri.toString());
+
+                    Map<String, Object> new_user = new HashMap<>();
+                    new_user.put("customer_info",new User("malanti", name, surname
+                            , mail, phone, address, downUri.toString()));
+                    myRef.updateChildren(new_user);
+
+                    finish();
+                }
+            }).addOnFailureListener(task -> {
+                Log.d("FAILURE",task.getMessage());
+            });
+        }
+        else{
+            Map<String, Object> new_user = new HashMap<String, Object>();
+            new_user.put("customer_info",new User("malnati", name, surname
+                    ,mail,phone, address, user.getPhotoPath()));
+            myRef.updateChildren(new_user);
+
+            finish();
+        }
     }
 
     private void editPhoto(){
@@ -251,87 +258,6 @@ public class EditProfile extends AppCompatActivity {
         }
     }
 
-    private boolean checkFields(){
-        name = ((EditText)findViewById(R.id.name)).getText().toString();
-        surname = ((EditText)findViewById(R.id.surname)).getText().toString();
-        mail = ((EditText)findViewById(R.id.mail)).getText().toString();
-        phone = ((EditText)findViewById(R.id.phone2)).getText().toString();
-        psw = ((EditText)findViewById(R.id.psw)).getText().toString();
-        psw_confirm = ((EditText)findViewById(R.id.psw_confirm)).getText().toString();
-
-        if(name.trim().length() == 0){
-            error_msg = "Insert name";
-            return false;
-        }
-
-        if(surname.trim().length() == 0){
-            error_msg = "Insert address";
-            return false;
-        }
-
-        if(mail.trim().length() == 0 || !android.util.Patterns.EMAIL_ADDRESS.matcher(mail).matches()){
-            error_msg = "Insert e-mail";
-            return false;
-        }
-
-        if(phone.trim().length() == 0){
-            error_msg = "Insert phone number";
-            return false;
-        }
-
-        if(psw.compareTo(psw_confirm) != 0){
-            error_msg = "Passwords don't match";
-            return false;
-        }
-
-
-        return true;
-    }
-
-    private void setPhoto(String photoPath) throws IOException {
-        File imgFile = new File(photoPath);
-
-        Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-        myBitmap = adjustPhoto(myBitmap, photoPath);
-
-        ((ImageView)findViewById(R.id.img_profile)).setImageBitmap(myBitmap);
-    }
-
-    private Bitmap adjustPhoto(Bitmap bitmap, String photoPath) throws IOException {
-        ExifInterface ei = new ExifInterface(photoPath);
-        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_UNDEFINED);
-
-        Bitmap rotatedBitmap = null;
-        switch(orientation) {
-
-            case ExifInterface.ORIENTATION_ROTATE_90:
-                rotatedBitmap = rotateImage(bitmap, 90);
-                break;
-
-            case ExifInterface.ORIENTATION_ROTATE_180:
-                rotatedBitmap = rotateImage(bitmap, 180);
-                break;
-
-            case ExifInterface.ORIENTATION_ROTATE_270:
-                rotatedBitmap = rotateImage(bitmap, 270);
-                break;
-
-            case ExifInterface.ORIENTATION_NORMAL:
-            default:
-                rotatedBitmap = bitmap;
-        }
-
-        return rotatedBitmap;
-    }
-
-    private static Bitmap rotateImage(Bitmap source, float angle) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(angle);
-        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(),
-                matrix, true);
-    }
-
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -373,8 +299,9 @@ public class EditProfile extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == 1 && resultCode == RESULT_OK && null != data){
+        if((requestCode == 1) && resultCode == RESULT_OK && null != data){
             Uri selectedImage = data.getData();
+
             String[] filePathColumn = { MediaStore.Images.Media.DATA };
 
             Cursor cursor = getContentResolver().query(selectedImage,
@@ -385,29 +312,12 @@ public class EditProfile extends AppCompatActivity {
             String picturePath = cursor.getString(columnIndex);
             cursor.close();
 
-            //Log.d("Photo path: ", picturePath);
             currentPhotoPath = picturePath;
         }
 
         if((requestCode == 1 || requestCode == 2) && resultCode == RESULT_OK){
-            File imgFile = new File(currentPhotoPath);
-            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-            try {
-                myBitmap = adjustPhoto(myBitmap, currentPhotoPath);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            ((ImageView)findViewById(R.id.img_profile)).setImageBitmap(myBitmap);
+            Glide.with(getApplicationContext()).load(currentPhotoPath).into((ImageView)findViewById(R.id.img_profile));
         }
-    }
-
-    @Override
-    public void onBackPressed() {
-        first_check = getSharedPreferences(CheckPREF, 0);
-        SharedPreferences.Editor editor = first_check.edit();
-        editor.putBoolean("firsRun", true);
-        editor.apply();
-        finish();
     }
 
     @Override
@@ -416,10 +326,10 @@ public class EditProfile extends AppCompatActivity {
 
         savedInstanceState.putString(Name, ((EditText)findViewById(R.id.name)).getText().toString());
         savedInstanceState.putString(Address, ((EditText)findViewById(R.id.surname)).getText().toString());
-        savedInstanceState.putString(Email, ((EditText)findViewById(R.id.mail)).getText().toString());
+        savedInstanceState.putString(Mail, ((EditText)findViewById(R.id.mail)).getText().toString());
         savedInstanceState.putString(Phone, ((EditText)findViewById(R.id.phone2)).getText().toString());
         savedInstanceState.putString(Photo, currentPhotoPath);
-        savedInstanceState.putBoolean(DialogOpen, dialog_open);
+        savedInstanceState.putBoolean(CameraOpen, dialog_open);
     }
 
     @Override
@@ -428,18 +338,13 @@ public class EditProfile extends AppCompatActivity {
 
         ((EditText)findViewById(R.id.name)).setText(savedInstanceState.getString(Name));
         ((EditText)findViewById(R.id.surname)).setText(savedInstanceState.getString(Address));
-        ((EditText)findViewById(R.id.mail)).setText(savedInstanceState.getString(Email));
+        ((EditText)findViewById(R.id.mail)).setText(savedInstanceState.getString(Mail));
         ((EditText)findViewById(R.id.phone2)).setText(savedInstanceState.getString(Phone));
         currentPhotoPath = savedInstanceState.getString(Photo);
-        if(currentPhotoPath != null){
-            try {
-                setPhoto(currentPhotoPath);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        if(currentPhotoPath != null)
+            Glide.with(getApplicationContext()).load(currentPhotoPath).into((ImageView)findViewById(R.id.img_profile));
 
-        if(savedInstanceState.getBoolean(DialogOpen))
+        if(savedInstanceState.getBoolean(CameraOpen))
             editPhoto();
     }
 }

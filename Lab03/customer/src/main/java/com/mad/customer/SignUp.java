@@ -2,19 +2,18 @@ package com.mad.customer;
 
 import com.bumptech.glide.Glide;
 import com.mad.lib.User;
+
+import static com.mad.lib.SharedClass.PERMISSION_GALLERY_REQUEST;
+import static com.mad.lib.SharedClass.RESTAURATEUR_INFO;
 import static com.mad.lib.SharedClass.ROOT_UID;
+import static com.mad.lib.SharedClass.CUSTOMER_PATH;
 
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.icu.text.SimpleDateFormat;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -32,12 +31,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
-
-
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -50,6 +46,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class SignUp extends AppCompatActivity {
     private static final String MyPREF = "User_Data";
@@ -76,15 +73,8 @@ public class SignUp extends AppCompatActivity {
     private String address;
 
     private String error_msg;
-    private Uri url;
 
-    private SharedPreferences user_data, first_check;
-
-    private final String CUSTOMER_PATH = "customers/users/";
-    private FirebaseStorage storage;
     FirebaseDatabase database;
-    private StorageReference storageReference;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,9 +86,6 @@ public class SignUp extends AppCompatActivity {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
 
-        storage = FirebaseStorage.getInstance();
-        storageReference = storage.getReference();
-
         Button confirm_reg = findViewById(R.id.back_order_button);
         confirm_reg.setOnClickListener(e -> {
             if(checkFields()){
@@ -107,11 +94,6 @@ public class SignUp extends AppCompatActivity {
                         ROOT_UID = auth.getUid();
 
                         uploadImage();
-
-                        Intent i = new Intent();
-                        setResult(1, i);
-
-                        finish();
                     }
                     else {
                         Log.d("ERROR", "createUserWithEmail:failure", task.getException());
@@ -128,46 +110,54 @@ public class SignUp extends AppCompatActivity {
     }
 
     private void uploadImage() {
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        DatabaseReference myRef = database.getReference(CUSTOMER_PATH+"/"+ROOT_UID);
+
+        progressDialog.setTitle("Creating profile...");
+        progressDialog.show();
+
         if(currentPhotoPath != null) {
-            final ProgressDialog progressDialog = new ProgressDialog(this);
-            progressDialog.setTitle("Uploading...");
-            progressDialog.setTitle("Uploading...");
-            progressDialog.show();
-
-            StorageReference ref = storageReference.child("images/").child("customer/").child(ROOT_UID);
-            url = Uri.fromFile(new File(currentPhotoPath));
-            ref.putFile(url).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                @Override
-                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                    if (!task.isSuccessful()){
-                        throw task.getException();
-                    }
-                    return ref.getDownloadUrl();
+            Log.d("Uploading", "img ok");
+            Log.d("PHOTO PATH",currentPhotoPath);
+            Uri url = Uri.fromFile(new File(currentPhotoPath));
+            StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+            StorageReference ref = storageReference.child("images/"+ UUID.randomUUID().toString());
+            ref.putFile(url).continueWithTask(task -> {
+                if (!task.isSuccessful()){
+                    throw task.getException();
                 }
-            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-                @Override
-                public void onComplete(@NonNull Task<Uri> task) {
-                    if (task.isSuccessful()){
-                        Uri downUri = task.getResult();
-                        Log.d("URL", "onComplete: Url: "+ downUri.toString());
+                return ref.getDownloadUrl();
+            }).addOnCompleteListener(task -> {
+                if (task.isSuccessful()){
+                    Uri downUri = task.getResult();
+                    Log.d("URL", "onComplete: Url: "+ downUri.toString());
 
-                        Map<String, Object> new_user = new HashMap<String, Object>();
-                        new_user.put("customer_info",new User("malanti",name, surname
-                                ,mail,phone,address,downUri.toString()));
-                        DatabaseReference myRef = database.getReference(CUSTOMER_PATH).child(ROOT_UID);
-                        myRef.updateChildren(new_user);
-                    }
+                    Map<String, Object> new_user = new HashMap<>();
+                    new_user.put("customer_info",new User("malanti", name, surname
+                            , mail, phone, address, downUri.toString()));
+                    myRef.updateChildren(new_user);
+
+                    Intent i = new Intent();
+                    setResult(1, i);
+
+                    finish();
                 }
+            }).addOnFailureListener(task -> {
+                Log.d("FAILURE",task.getMessage());
+
             });
-        }else{
-
-            Map<String, Object> new_user = new HashMap<String, Object>();
-            new_user.put("customer_info",new User("","gallottino",name, surname
-                    ,mail,phone,"null"));
-            DatabaseReference myRef = database.getReference(CUSTOMER_PATH).child(ROOT_UID);
-            myRef.updateChildren(new_user);
         }
+        else{
+            Map<String, Object> new_user = new HashMap<String, Object>();
+            new_user.put("customer_info",new User("malnati", name, surname
+                    ,mail,phone, address, null));
+            myRef.updateChildren(new_user);
 
+            Intent i = new Intent();
+            setResult(1, i);
+
+            finish();
+        }
     }
 
     private void editPhoto(){
@@ -209,18 +199,13 @@ public class SignUp extends AppCompatActivity {
     private void cameraIntent(){
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-                Log.d("FILE: ","error creating file");
-            }
-            // Continue only if the File was successfully created
+            File photoFile = createImageFile();
+
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
                         "com.example.android.fileprovider",
                         photoFile);
+
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, 2);
             }
@@ -275,13 +260,10 @@ public class SignUp extends AppCompatActivity {
             return false;
         }
 
-
         return true;
     }
 
-
-
-    private File createImageFile() throws IOException {
+    private File createImageFile() {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "IMG_" + timeStamp + "_";
@@ -322,8 +304,9 @@ public class SignUp extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == 1 && resultCode == RESULT_OK && null != data){
+        if((requestCode == 1) && resultCode == RESULT_OK && null != data){
             Uri selectedImage = data.getData();
+
             String[] filePathColumn = { MediaStore.Images.Media.DATA };
 
             Cursor cursor = getContentResolver().query(selectedImage,
@@ -334,7 +317,6 @@ public class SignUp extends AppCompatActivity {
             String picturePath = cursor.getString(columnIndex);
             cursor.close();
 
-            //Log.d("Photo path: ", picturePath);
             currentPhotoPath = picturePath;
         }
 
@@ -342,7 +324,6 @@ public class SignUp extends AppCompatActivity {
             Glide.with(getApplicationContext()).load(currentPhotoPath).into((ImageView)findViewById(R.id.img_profile));
         }
     }
-
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState){

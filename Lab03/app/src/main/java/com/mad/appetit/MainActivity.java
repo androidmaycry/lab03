@@ -24,7 +24,6 @@ public class MainActivity extends AppCompatActivity {
         FirebaseAuth auth = FirebaseAuth.getInstance();
 
         if(auth.getCurrentUser() == null){
-
             findViewById(R.id.sign_up).setOnClickListener(e -> {
                 Intent login = new Intent(this, SignUp.class);
                 startActivityForResult(login, 1);

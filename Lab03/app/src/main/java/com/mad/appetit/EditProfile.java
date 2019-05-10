@@ -62,8 +62,6 @@ public class EditProfile extends AppCompatActivity {
         findViewById(R.id.button).setOnClickListener(e -> {
             if(checkFields()){
                 storeDatabase();
-
-                finish();
             }
             else{
                 Toast.makeText(getApplicationContext(), error_msg, Toast.LENGTH_LONG).show();
@@ -73,6 +71,7 @@ public class EditProfile extends AppCompatActivity {
         findViewById(R.id.plus).setOnClickListener(p -> editPhoto());
         findViewById(R.id.img_profile).setOnClickListener(e -> editPhoto());
     }
+
     private boolean checkFields(){
         name = ((EditText)findViewById(R.id.name)).getText().toString();
         addr = ((EditText)findViewById(R.id.address)).getText().toString();
@@ -288,6 +287,8 @@ public class EditProfile extends AppCompatActivity {
 
                     profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, "", phone, downUri.toString()));
                     myRef.updateChildren(profileMap);
+
+                    finish();
                 }
             });
         }
@@ -298,6 +299,8 @@ public class EditProfile extends AppCompatActivity {
                 profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, "", phone,  null));
 
             myRef.updateChildren(profileMap);
+
+            finish();
         }
     }
 

@@ -1,20 +1,29 @@
 package com.mad.customer;
 
+import static com.mad.lib.SharedClass.Address;
 import static com.mad.lib.SharedClass.CUSTOMER_PATH;
+import static com.mad.lib.SharedClass.Description;
+import static com.mad.lib.SharedClass.Mail;
+import static com.mad.lib.SharedClass.Name;
+import static com.mad.lib.SharedClass.Phone;
+import static com.mad.lib.SharedClass.Photo;
 import static com.mad.lib.SharedClass.ROOT_UID;
+import static com.mad.lib.SharedClass.Time;
+import static com.mad.lib.SharedClass.user;
+
+import com.bumptech.glide.Glide;
 import com.mad.lib.User;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -27,7 +36,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -43,7 +51,6 @@ import java.net.URL;
 
 public class Profile extends Fragment {
     private OnFragmentInteractionListener mListener;
-    private ImageView imgView;
     private View view;
 
     public Profile() {
@@ -62,6 +69,7 @@ public class Profile extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -77,7 +85,15 @@ public class Profile extends Fragment {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference(CUSTOMER_PATH).child(ROOT_UID);
 
-        Log.d("PATH",CUSTOMER_PATH+ROOT_UID);
+        Log.d("PATH",CUSTOMER_PATH+"/"+ROOT_UID);
+
+        view.findViewById(R.id.button_logout).setOnClickListener(e -> {
+            auth.signOut();
+
+            Intent mainActivity = new Intent(getContext(), MainActivity.class);
+            mainActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(mainActivity);
+        });
 
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -88,12 +104,19 @@ public class Profile extends Fragment {
                 ((TextView) view.findViewById(R.id.surname)).setText(user.getSurname());
                 ((TextView) view.findViewById(R.id.mail)).setText(user.getEmail());
                 ((TextView) view.findViewById(R.id.phone)).setText(user.getPhone());
+                ((TextView) view.findViewById(R.id.address)).setText(user.getAddr());
                 ImageView imageView = view.findViewById(R.id.profile_image);
-                InputStream in = null;
+
+                InputStream inputStream = null;
                 try {
-                    in = new URL(user.getPhotoPath()).openStream();
-                    Bitmap bimage = BitmapFactory.decodeStream(in);
-                    imageView.setImageBitmap(bimage);
+                    StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+                    StrictMode.setThreadPolicy(policy);
+
+                    inputStream = new URL(user.getPhotoPath()).openStream();
+                    if (inputStream != null)
+                        Glide.with(getContext()).load(user.getPhotoPath()).into((ImageView) view.findViewById(R.id.profile_image));
+                    else
+                        ((ImageView) view.findViewById(R.id.profile_image)).setImageResource(R.drawable.person);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -108,49 +131,24 @@ public class Profile extends Fragment {
         return view;
     }
 
-    private void setPhoto(String photoPath) throws IOException {
-        File imgFile = new File(photoPath);
-
-        Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-        myBitmap = adjustPhoto(myBitmap, photoPath);
-
-        imgView.setImageBitmap(myBitmap);
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_main, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
 
-    private Bitmap adjustPhoto(Bitmap bitmap, String photoPath) throws IOException {
-        ExifInterface ei = new ExifInterface(photoPath);
-        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_UNDEFINED);
-
-        Bitmap rotatedBitmap = null;
-        switch(orientation) {
-
-            case ExifInterface.ORIENTATION_ROTATE_90:
-                rotatedBitmap = rotateImage(bitmap, 90);
-                break;
-
-            case ExifInterface.ORIENTATION_ROTATE_180:
-                rotatedBitmap = rotateImage(bitmap, 180);
-                break;
-
-            case ExifInterface.ORIENTATION_ROTATE_270:
-                rotatedBitmap = rotateImage(bitmap, 270);
-                break;
-
-            case ExifInterface.ORIENTATION_NORMAL:
+        switch (id){
+            case R.id.add:
+                Intent i = new Intent(getContext(), EditProfile.class);
+                startActivity(i);
+                return true;
             default:
-                rotatedBitmap = bitmap;
+                return super.onOptionsItemSelected(item);
         }
-
-        return rotatedBitmap;
-    }
-
-    private static Bitmap rotateImage(Bitmap source, float angle) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(angle);
-        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(),
-                matrix, true);
     }
 
     // TODO: Rename method, update argument and hook method into UI event

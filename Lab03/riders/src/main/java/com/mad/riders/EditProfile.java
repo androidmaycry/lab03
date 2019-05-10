@@ -123,12 +123,6 @@ public class EditProfile extends AppCompatActivity {
         setContentView(R.layout.activity_edit_profile);
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        auth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
-            }
-        });
 
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
@@ -136,7 +130,6 @@ public class EditProfile extends AppCompatActivity {
         Button confirm_reg = findViewById(R.id.button);
         confirm_reg.setOnClickListener(e -> {
             if(checkFields()){
-
                 auth.createUserWithEmailAndPassword(mail,psw).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -144,16 +137,13 @@ public class EditProfile extends AppCompatActivity {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d("SIGNIN", "createUserWithEmail:success");
                             uploadImage(auth.getUid());
-                            finish();
                         }
                         else {
                             // If sign in fails, display a message to the user.
                             Log.d("ERROR", "createUserWithEmail:failure", task.getException());
                         }
-                        // ...
                     }
                 });
-
             }
             else{
                 Toast.makeText(getApplicationContext(), error_msg, Toast.LENGTH_LONG).show();
@@ -165,11 +155,8 @@ public class EditProfile extends AppCompatActivity {
     }
 
     private void uploadImage(String UID) {
-
-        if(currentPhotoPath != null)
-        {
+        if(currentPhotoPath != null) {
             final ProgressDialog progressDialog = new ProgressDialog(this);
-            progressDialog.setTitle("Uploading...");
             progressDialog.setTitle("Uploading...");
             progressDialog.show();
 

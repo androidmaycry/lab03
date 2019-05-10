@@ -16,6 +16,7 @@ import static com.mad.lib.SharedClass.TimeClose;
 import static com.mad.lib.SharedClass.TimeOpen;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -85,11 +86,6 @@ public class SignUp extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         ROOT_UID = auth.getUid();
                         storeDatabase();
-
-                        Intent i = new Intent();
-                        setResult(1, i);
-
-                        finish();
                     }
                     else {
                         Toast.makeText(SignUp.this,"Registration failed. Try again", Toast.LENGTH_LONG).show();
@@ -366,12 +362,16 @@ public class SignUp extends AppCompatActivity {
     }
 
     public void storeDatabase(){
+        final ProgressDialog progressDialog = new ProgressDialog(this);
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO);
-        StorageReference storageReference = FirebaseStorage.getInstance().getReference();
         Map<String, Object> restMap = new HashMap<>();
+
+        progressDialog.setTitle("Creating profile...");
+        progressDialog.show();
 
         if(currentPhotoPath != null) {
             Uri photoUri = Uri.fromFile(new File(currentPhotoPath));
+            StorageReference storageReference = FirebaseStorage.getInstance().getReference();
             StorageReference ref = storageReference.child("images/"+ UUID.randomUUID().toString());
 
             ref.putFile(photoUri).continueWithTask(task -> {
@@ -386,6 +386,10 @@ public class SignUp extends AppCompatActivity {
                     restMap.put(ROOT_UID, new Restaurateur(mail, name, addr, descr,
                             openingTime + " - " + closingTime, phone, downUri.toString()));
                     myRef.updateChildren(restMap);
+
+                    Intent i = new Intent();
+                    setResult(1, i);
+                    finish();
                 }
             });
         }
@@ -393,6 +397,10 @@ public class SignUp extends AppCompatActivity {
             restMap.put(ROOT_UID, new Restaurateur(mail, name, addr, descr,
                     openingTime + " - " + closingTime, phone, null));
             myRef.updateChildren(restMap);
+
+            Intent i = new Intent();
+            setResult(1, i);
+            finish();
         }
     }
 
