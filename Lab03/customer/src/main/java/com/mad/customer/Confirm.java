@@ -28,6 +28,9 @@ public class Confirm extends AppCompatActivity {
 
     private ArrayList<String> removed = new ArrayList<>();
     private String time = "";
+    private String tot;
+    private String restAddr;
+    private String photo;
     private ArrayList<String> keys;
     private ArrayList<String> names;
     private ArrayList<String> prices;
@@ -47,10 +50,12 @@ public class Confirm extends AppCompatActivity {
         findViewById(R.id.confirm_order_button).setOnClickListener(e->{
             time = ((EditText)findViewById(R.id.time_edit)).getText().toString();
             if(time.trim().length() > 0){
+
+                //TODO controlla formato orario
                 DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(ACCEPTED_ORDER_PATH);
                 HashMap<String, Object> orderMap = new HashMap<>();
 
-                orderMap.put(myRef.push().getKey(), new OrderItem(user.getName(), user.getAddr(), "addrRestuarant", user.getPhone(), time,  "photo", names));
+                orderMap.put(myRef.push().getKey(), new OrderItem(user.getName(), user.getAddr(), restAddr, user.getPhone(), time,tot, photo, names));
                 myRef.updateChildren(orderMap);
 
                 setResult(1);
@@ -71,6 +76,8 @@ public class Confirm extends AppCompatActivity {
         prices = getIntent().getStringArrayListExtra("prices");
         nums = getIntent().getStringArrayListExtra("nums");
         key = getIntent().getStringExtra("key");
+        restAddr = getIntent().getStringExtra("raddr");
+        photo = getIntent().getStringExtra("photo");
 
         recyclerView = findViewById(R.id.dish_conf_recyclerview);
         mAdapter = new ConfirmRecyclerAdapter(this, names, prices, nums, Confirm.this);
@@ -78,7 +85,7 @@ public class Confirm extends AppCompatActivity {
         recyclerView.setAdapter(mAdapter);
         recyclerView.setLayoutManager(layoutManager);
 
-        String tot =calcoloTotale(prices, nums);
+        tot =calcoloTotale(prices, nums);
         TextView totale = findViewById(R.id.totale);
         totale.setText(tot + " €");
     }
@@ -96,7 +103,7 @@ public class Confirm extends AppCompatActivity {
     public void deleteItem (int index){
         keys.remove(index);
         removed.add(Integer.toString(index));
-        String tot =calcoloTotale(prices, nums);
+        tot =calcoloTotale(prices, nums);
         TextView totale = findViewById(R.id.totale);
         totale.setText(tot + " €");
         if (Float.parseFloat(tot) == 0){

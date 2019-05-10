@@ -25,6 +25,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.mad.lib.OrderItem;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -52,7 +53,7 @@ class ViewHolderOrder extends RecyclerView.ViewHolder{
 
     void setData(OrderItem current, int position){
         this.name.setText(current.getName());
-        this.addr.setText(current.getAddr());
+        this.addr.setText(current.getAddrRestaurant());
         this.cell.setText(current.getCell());
         this.time.setText(current.getTime());
         if(current.getImg() != null) {

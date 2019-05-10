@@ -18,7 +18,7 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder implements Vie
     TextView opening;
     ImageView img;
     int position;
-    RestaurantItem current;
+    Restaurateur current;
     private String key;
 
     public RestaurantViewHolder(View itemView){
@@ -37,16 +37,21 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder implements Vie
         this.addr.setText(current.getAddr());
         this.cuisine.setText(current.getCuisine());
         this.opening.setText(current.getOpeningTime());
-        Picasso.get()
-                .load(current.getImg())
-                .resize(150, 150)
-                .centerCrop()
-                .into(this.img);
+        if(current.getPhotoUri()!="") {
+            Picasso.get()
+                    .load(current.getPhotoUri())
+                    .resize(150, 150)
+                    .centerCrop()
+                    .into(this.img);
+        }
         this.position = position;
         this.current = current;
         this.key = key;
 
     }
+
+
+
     @Override
     public void onClick(View view) {
         //Toast.makeText(view.getContext(), "Item"+getAdapterPosition(), Toast.LENGTH_LONG).show();
@@ -55,11 +60,11 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder implements Vie
         Intent intent = new Intent(view.getContext(), Ordering.class);
         intent.putExtra("name", current.getName());
         intent.putExtra("addr", current.getAddr());
-        intent.putExtra("cell", current.getCell());
-        intent.putExtra("description", current.getDescription());
-        intent.putExtra("email", current.getEmail());
-        intent.putExtra("opening", current.getOpening());
-        intent.putExtra("img", current.getImg());
+        intent.putExtra("cell", current.getPhone());
+        intent.putExtra("cuisine", current.getCuisine());
+        intent.putExtra("email", current.getMail());
+        intent.putExtra("opening", current.getOpeningTime());
+        intent.putExtra("img", current.getPhotoUri());
         intent.putExtra("key", this.key);
         view.getContext().startActivity(intent);
     }

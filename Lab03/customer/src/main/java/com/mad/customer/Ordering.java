@@ -80,6 +80,8 @@ class ViewHolderDailyOffer extends RecyclerView.ViewHolder {
 
 public class Ordering extends AppCompatActivity {
     private String key;
+    private String restAddr;
+    private String restPhoto;
     private static ArrayList<String> removed = new ArrayList<>();
     ArrayList<String> keys = new ArrayList<String>();
     ArrayList<String> names = new ArrayList<String>();
@@ -172,18 +174,13 @@ public class Ordering extends AppCompatActivity {
             else{
                 Intent intent = new Intent(this, Confirm.class);
                 intent.putExtra("key", key);
+                intent.putExtra("raddr", restAddr);
+                intent.putExtra("photo", restPhoto);
                 intent.putStringArrayListExtra("keys", (ArrayList<String>) keys);
                 intent.putStringArrayListExtra("names", (ArrayList<String>) names);
                 intent.putStringArrayListExtra("prices", (ArrayList<String>) prices);
                 intent.putStringArrayListExtra("nums", (ArrayList<String>) nums);
                 startActivityForResult(intent, 0);
-
-                //keys.clear();
-                //names.clear();
-                //prices.clear();
-                //nums.clear();
-                //findViewById(R.id.button2).setBackgroundColor(Color.GRAY);
-                //finish();
             }
         });
         getIncomingIntent();
@@ -212,14 +209,14 @@ public class Ordering extends AppCompatActivity {
     private void getIncomingIntent(){
 
         String myName = getIntent().getStringExtra("name");
-        String myAddr = getIntent().getStringExtra("addr");
+        restAddr = getIntent().getStringExtra("addr");
         Long myCell = getIntent().getLongExtra("cell",0);
-        String myDescription = getIntent().getStringExtra("description");
+        String myCuisine = getIntent().getStringExtra("cuisine");
         String myEmail = getIntent().getStringExtra("email");
         String myOpening = getIntent().getStringExtra("opening");
-        String myImg = getIntent().getStringExtra("img");
+        restPhoto= getIntent().getStringExtra("img");
         this.key = getIntent().getStringExtra("key");
-        setFields(myName, myAddr, myCell, myDescription, myEmail, myOpening, myImg);
+        setFields(myName, restAddr, myCell, myCuisine, myEmail, myOpening, restPhoto);
 
     }
 

@@ -160,7 +160,7 @@ public class EditProfile extends AppCompatActivity {
                         Log.d("URL", "onComplete: Url: "+ downUri.toString());
 
                         Map<String, Object> new_user = new HashMap<String, Object>();
-                        new_user.put("customer_info",new User("gallottino",name, surname
+                        new_user.put("customer_info",new User("", "gallottino",name, surname
                                 ,mail,phone,downUri.toString()));
                         DatabaseReference myRef = database.getReference(CUSTOMER_PATH +UID);
                         myRef.updateChildren(new_user);
@@ -171,7 +171,7 @@ public class EditProfile extends AppCompatActivity {
         }else{
 
             Map<String, Object> new_user = new HashMap<String, Object>();
-            new_user.put("customer_info",new User("gallottino",name, surname
+            new_user.put("customer_info",new User("","gallottino",name, surname
                     ,mail,phone,"null"));
             DatabaseReference myRef = database.getReference(CUSTOMER_PATH +UID);
             myRef.updateChildren(new_user);
