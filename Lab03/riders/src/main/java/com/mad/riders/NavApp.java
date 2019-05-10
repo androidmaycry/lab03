@@ -37,6 +37,7 @@ public class NavApp extends AppCompatActivity implements
 
 
     public String UID;
+    public boolean value;
     private BottomNavigationView navigation;
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = item ->  {
@@ -59,6 +60,10 @@ public class NavApp extends AppCompatActivity implements
             case R.id.navigation_reservation:
                 Bundle bundle2 = new Bundle();
                 bundle2.putString("UID",UID);
+                if(value)
+                    bundle2.putString("STATUS","true");
+                else
+                    bundle2.putString("STATUS","false");
                 Orders orders = new Orders();
                 orders.setArguments(bundle2);
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, orders).commit();
@@ -79,6 +84,7 @@ public class NavApp extends AppCompatActivity implements
         Intent i  = getIntent();
         UID = i.getStringExtra("UID");
 
+        value = true;
         /* DEBUG */
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("riders/users/"+UID+"/pending/");
@@ -90,6 +96,19 @@ public class NavApp extends AppCompatActivity implements
         dishMap.put(Objects.requireNonNull(myRef.push().getKey()), reservationItem);
         myRef.updateChildren(dishMap);
 
+        DatabaseReference status = database.getReference("riders/users/"+UID+"/available/");
+
+        status.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                value = (boolean)dataSnapshot.getValue();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
 
         checkBadge();
 

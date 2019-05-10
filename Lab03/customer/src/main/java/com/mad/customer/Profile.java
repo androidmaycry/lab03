@@ -105,7 +105,7 @@ public class Profile extends Fragment {
         StrictMode.setThreadPolicy(policy);
 
 
-        String UID = getArguments().getString("UID");
+        String UID = getArguments().getString("ROOT_UID");
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
