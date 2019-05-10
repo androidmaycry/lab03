@@ -210,7 +210,7 @@ public class Ordering extends AppCompatActivity {
 
         String myName = getIntent().getStringExtra("name");
         restAddr = getIntent().getStringExtra("addr");
-        Long myCell = getIntent().getLongExtra("cell",0);
+        String myCell = getIntent().getStringExtra("cell");
         String myCuisine = getIntent().getStringExtra("cuisine");
         String myEmail = getIntent().getStringExtra("email");
         String myOpening = getIntent().getStringExtra("opening");
@@ -220,27 +220,27 @@ public class Ordering extends AppCompatActivity {
 
     }
 
-    private void setFields (String name, String addr, Long cell, String description, String email, String opening, String img){
-        TextView mname = findViewById(R.id.textView5);
-        TextView maddr = findViewById(R.id.textView);
-        TextView mcell = findViewById(R.id.textView3);
-        TextView mdescription = findViewById(R.id.textView6);
-        TextView memail = findViewById(R.id.textView2);
-        TextView mopening = findViewById(R.id.textView4);
+    private void setFields (String name, String addr, String cell, String description, String email, String opening, String img){
+        TextView mname = findViewById(R.id.rest_info_name);
+        TextView maddr = findViewById(R.id.rest_info_addr);
+        TextView mcell = findViewById(R.id.rest_info_cell);
+        TextView memail = findViewById(R.id.rest_info_mail);
+        TextView mopening = findViewById(R.id.rest_info_open);
         ImageView mimg = findViewById(R.id.imageView);
 
         mname.setText(name);
         maddr.setText(addr);
-        mcell.setText(cell.toString());
-        mdescription.setText(description);
+        mcell.setText(cell);
         memail.setText(email);
         mopening.setText(opening);
-        Picasso.get()
-                .load(img)
-                .resize(150, 150)
-                .centerCrop()
-                .into(mimg);
 
+        if(img.length() != 0) {
+            Picasso.get()
+                    .load(img)
+                    .resize(150, 150)
+                    .centerCrop()
+                    .into(mimg);
+        }
 
     }
 
