@@ -1,5 +1,6 @@
 package com.mad.riders;
 
+import static com.mad.lib.SharedClass.*;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,7 +18,6 @@ import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.firebase.ui.database.SnapshotParser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -36,7 +36,6 @@ import java.util.Map;
  * Use the {@link Orders#newInstance} factory method to
  * create an instance of this fragment.
  */
-
 
 class ViewHolder extends RecyclerView.ViewHolder {
     public TextView restaurantAddr;
@@ -111,7 +110,6 @@ public class Orders extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    private final String RIDERS_PATH = "riders/users/";
 
     private  boolean available;
 
@@ -172,8 +170,7 @@ public class Orders extends Fragment {
                 deliveredOrder();
         });
 
-
-        query1 = FirebaseDatabase.getInstance().getReference("riders/users/"+UID);
+        query1 = FirebaseDatabase.getInstance().getReference(RIDERS_PATH + "/" + UID);
 
         query1.addValueEventListener(new ValueEventListener() {
             @Override
@@ -202,7 +199,7 @@ public class Orders extends Fragment {
             }
         });
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference query = database.getReference("riders/users/"+UID+"/pending/");
+        DatabaseReference query = database.getReference(RIDERS_PATH + "/"+UID+"/pending/");
 
         FirebaseRecyclerOptions<OrderItem> options =
                 new FirebaseRecyclerOptions.Builder<OrderItem>()
@@ -226,7 +223,7 @@ public class Orders extends Fragment {
                 // ...
                 holder.setCustomerAdrr(model.getAddrCustomer());
                 holder.setRestaurantAddr(model.getAddrRestaurant());
-                //holder.setToPay(Double.parseDouble(model.totPrice));
+                holder.setToPay(Double.parseDouble(model.totPrice));
                 holder.setStatus(available);
                 holder.getView().findViewById(R.id.confirm_reservation)
                         .setOnClickListener(e -> acceptOrder());

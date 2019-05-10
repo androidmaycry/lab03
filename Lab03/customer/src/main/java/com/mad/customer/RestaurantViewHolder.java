@@ -50,8 +50,6 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder implements Vie
 
     }
 
-
-
     @Override
     public void onClick(View view) {
         //Toast.makeText(view.getContext(), "Item"+getAdapterPosition(), Toast.LENGTH_LONG).show();

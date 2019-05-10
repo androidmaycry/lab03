@@ -81,12 +81,14 @@ public class Reservation extends Fragment {
 
     private static FirebaseRecyclerOptions<OrderItem> options =
             new FirebaseRecyclerOptions.Builder<OrderItem>()
-                    .setQuery(FirebaseDatabase.getInstance().getReference(RESERVATION_PATH),
+                    .setQuery(FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO + "/" + ROOT_UID
+                            + "/" + RESERVATION_PATH),
                             OrderItem.class).build();
 
     private static FirebaseRecyclerOptions<OrderItem> options2 =
             new FirebaseRecyclerOptions.Builder<OrderItem>()
-                    .setQuery(FirebaseDatabase.getInstance().getReference(ACCEPTED_ORDER_PATH),
+                    .setQuery(FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO + "/" + ROOT_UID
+                                    + "/" + ACCEPTED_ORDER_PATH),
                             OrderItem.class).build();
 
     private Reservation.OnFragmentInteractionListener mListener;
@@ -180,13 +182,15 @@ public class Reservation extends Fragment {
 
         view.findViewById(R.id.button_confirm).setOnClickListener(e -> {
             FirebaseDatabase database = FirebaseDatabase.getInstance();
-            Query queryDel = database.getReference().child(RESERVATION_PATH).orderByChild("name").equalTo(id);
+            Query queryDel = database.getReference().child(RESTAURATEUR_INFO + "/" + ROOT_UID
+            + "/" + RESERVATION_PATH).orderByChild("name").equalTo(id);
 
             queryDel.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if (dataSnapshot.exists()) {
-                        DatabaseReference acceptOrder = database.getReference(ACCEPTED_ORDER_PATH);
+                        DatabaseReference acceptOrder = database.getReference(RESTAURATEUR_INFO + "/" + ROOT_UID
+                                + "/" + ACCEPTED_ORDER_PATH);
                         Map<String, Object> orderMap = new HashMap<>();
 
                         for (DataSnapshot d : dataSnapshot.getChildren()) {
@@ -254,7 +258,8 @@ public class Reservation extends Fragment {
 
         view.findViewById(R.id.button_confirm).setOnClickListener(e -> {
             FirebaseDatabase database = FirebaseDatabase.getInstance();
-            Query queryDel = database.getReference().child(RESERVATION_PATH).orderByChild("name").equalTo(id);
+            Query queryDel = database.getReference().child(RESTAURATEUR_INFO + "/" + ROOT_UID
+                    + "/" + RESERVATION_PATH).orderByChild("name").equalTo(id);
 
             queryDel.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -293,9 +298,11 @@ public class Reservation extends Fragment {
         Query query;
 
         if(!order)
-            query = database.getReference().child(RESERVATION_PATH).orderByChild("name").equalTo(id);
+            query = database.getReference().child(RESTAURATEUR_INFO + "/" + ROOT_UID
+                    + "/" + RESERVATION_PATH).orderByChild("name").equalTo(id);
         else
-            query = database.getReference().child(ACCEPTED_ORDER_PATH).orderByChild("name").equalTo(id);
+            query = database.getReference().child(RESTAURATEUR_INFO + "/" + ROOT_UID
+                    + "/" + ACCEPTED_ORDER_PATH).orderByChild("name").equalTo(id);
 
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

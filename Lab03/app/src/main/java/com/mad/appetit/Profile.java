@@ -71,7 +71,7 @@ public class Profile extends Fragment {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference();
-        Query query = myRef.child(RESTAURATEUR_INFO).orderByKey().equalTo(ROOT_UID);
+        Query query = myRef.child(RESTAURATEUR_INFO + "/" + ROOT_UID);
 
         view.findViewById(R.id.logout).setOnClickListener(e -> {
             FirebaseAuth.getInstance().signOut();
@@ -89,8 +89,10 @@ public class Profile extends Fragment {
                     InputStream inputStream = null;
 
                     for(DataSnapshot d : dataSnapshot.getChildren()) {
-                        restaurateur = d.getValue(Restaurateur.class);
-                        break;
+                        if(d.getKey().equals("info")){
+                            restaurateur = d.getValue(Restaurateur.class);
+                            break;
+                        }
                     }
 
                     name = restaurateur.getName();

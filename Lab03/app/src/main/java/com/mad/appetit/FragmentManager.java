@@ -27,6 +27,8 @@ import java.util.Objects;
 import static android.view.View.VISIBLE;
 import static android.view.View.INVISIBLE;
 import static com.mad.lib.SharedClass.RESERVATION_PATH;
+import static com.mad.lib.SharedClass.RESTAURATEUR_INFO;
+import static com.mad.lib.SharedClass.ROOT_UID;
 
 public class FragmentManager extends AppCompatActivity implements DailyOffer.OnFragmentInteractionListener,
         Reservation.OnFragmentInteractionListener, Home.OnFragmentInteractionListener,
@@ -77,7 +79,8 @@ public class FragmentManager extends AppCompatActivity implements DailyOffer.OnF
     }
 
     private void checkBadge(){
-        Query query = FirebaseDatabase.getInstance().getReference(RESERVATION_PATH);
+        Query query = FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO + "/" + ROOT_UID
+                + "/" + RESERVATION_PATH);
 
         query.addValueEventListener(new ValueEventListener() {
             @Override

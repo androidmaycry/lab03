@@ -97,7 +97,8 @@ public class DailyOffer extends Fragment {
 
     private static FirebaseRecyclerOptions<DailyOfferItem> options =
             new FirebaseRecyclerOptions.Builder<DailyOfferItem>()
-                    .setQuery(FirebaseDatabase.getInstance().getReference(DISHES_PATH),
+                    .setQuery(FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO + "/" +
+                            ROOT_UID + "/" + DISHES_PATH),
                             DailyOfferItem.class).build();
 
     public DailyOffer() {
@@ -171,7 +172,7 @@ public class DailyOffer extends Fragment {
         view.findViewById(R.id.button_confirm).setOnClickListener(e -> {
             FirebaseDatabase database = FirebaseDatabase.getInstance();
             DatabaseReference myRef = database.getReference();
-            Query query = myRef.child(DISHES_PATH).orderByChild("name").equalTo(dishName);
+            Query query = myRef.child(RESTAURATEUR_INFO + "/" + ROOT_UID + "/" + DISHES_PATH).orderByChild("name").equalTo(dishName);
 
             query.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override

@@ -1,5 +1,6 @@
 package com.mad.customer;
 
+import static com.mad.lib.SharedClass.*;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.StrictMode;
@@ -21,7 +22,10 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.firebase.ui.database.SnapshotParser;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.FirebaseDatabase;
+import com.mad.lib.Restaurateur;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -35,7 +39,6 @@ class ViewHolderDailyOffer extends RecyclerView.ViewHolder {
     private DishItem current;
     private int position;
     private View view;
-
 
     ViewHolderDailyOffer(View itemView) {
         super(itemView);
@@ -90,10 +93,6 @@ public class Ordering extends AppCompatActivity {
     private RecyclerView recyclerView;
     private FirebaseRecyclerAdapter<DishItem, ViewHolderDailyOffer> mAdapter;
     private RecyclerView.LayoutManager layoutManager;
-    private static FirebaseRecyclerOptions<DishItem> options =
-            new FirebaseRecyclerOptions.Builder<DishItem>()
-                    .setQuery(FirebaseDatabase.getInstance().getReference().child("dishes"),
-                            DishItem.class).build();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,6 +103,34 @@ public class Ordering extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         layoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
+
+        getIncomingIntent();
+
+        FirebaseRecyclerOptions<DishItem> options =
+                new FirebaseRecyclerOptions.Builder<DishItem>()
+                        .setQuery(FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO + "/" + key + "/dishes"),
+                                new SnapshotParser<DishItem>(){
+                                    @NonNull
+                                    @Override
+                                    public DishItem parseSnapshot(@NonNull DataSnapshot snapshot) {
+                                        DishItem dishItem;
+                                        if(snapshot.child("photoUri").getValue() != null){
+                                            dishItem = new DishItem(snapshot.child("name").getValue().toString(),
+                                                    snapshot.child("desc").getValue().toString(),
+                                                    Float.parseFloat(snapshot.child("price").getValue().toString()),
+                                                    Integer.parseInt(snapshot.child("quantity").getValue().toString()),
+                                                    snapshot.child("photoUri").getValue().toString());
+                                        }
+                                        else{
+                                            dishItem = new DishItem(snapshot.child("name").getValue().toString(),
+                                                    snapshot.child("desc").getValue().toString(),
+                                                    Float.parseFloat(snapshot.child("price").getValue().toString()),
+                                                    Integer.parseInt(snapshot.child("quantity").getValue().toString()),
+                                                    "null");
+                                        }
+                                        return dishItem;
+                                    }
+                                }).build();
 
         mAdapter = new FirebaseRecyclerAdapter<DishItem, ViewHolderDailyOffer>(options) {
 
@@ -180,9 +207,7 @@ public class Ordering extends AppCompatActivity {
                 startActivityForResult(intent, 0);
             }
         });
-        getIncomingIntent();
     }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

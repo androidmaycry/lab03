@@ -1,7 +1,5 @@
 package com.mad.customer;
 
-
-
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
@@ -75,8 +73,6 @@ public class Order extends Fragment {
                     .setQuery(FirebaseDatabase.getInstance().getReference("reservation"),
                             OrderItem.class).build();
 
-
-
     private Order.OnFragmentInteractionListener mListener;
 
     public Order() {
@@ -117,8 +113,6 @@ public class Order extends Fragment {
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setAdapter(mAdapter);
         recyclerView.setLayoutManager(layoutManager);
-
-
 
         return view;
     }

@@ -363,7 +363,7 @@ public class SignUp extends AppCompatActivity {
 
     public void storeDatabase(){
         final ProgressDialog progressDialog = new ProgressDialog(this);
-        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO);
+        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO + "/" + ROOT_UID);
         Map<String, Object> restMap = new HashMap<>();
 
         progressDialog.setTitle("Creating profile...");
@@ -383,7 +383,7 @@ public class SignUp extends AppCompatActivity {
                 if (task.isSuccessful()){
                     Uri downUri = task.getResult();
 
-                    restMap.put(ROOT_UID, new Restaurateur(mail, name, addr, descr,
+                    restMap.put("info", new Restaurateur(mail, name, addr, descr,
                             openingTime + " - " + closingTime, phone, downUri.toString()));
                     myRef.updateChildren(restMap);
 
@@ -394,7 +394,7 @@ public class SignUp extends AppCompatActivity {
             });
         }
         else{
-            restMap.put(ROOT_UID, new Restaurateur(mail, name, addr, descr,
+            restMap.put("info", new Restaurateur(mail, name, addr, descr,
                     openingTime + " - " + closingTime, phone, null));
             myRef.updateChildren(restMap);
 

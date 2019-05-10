@@ -1,12 +1,12 @@
 package com.mad.riders;
 
+import static com.mad.lib.SharedClass.*;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -28,10 +28,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -41,9 +38,6 @@ import java.util.List;
  * Use the {@link Profile#newInstance} factory method to
  * create an instance of this fragment.
  */
-
-
-
 
 public class Profile extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
@@ -70,8 +64,6 @@ public class Profile extends Fragment {
 
     ImageView imgView;
     View view;
-
-    private final String RIDERS_PATH = "riders/users/";
 
     public Profile() {
         // Required empty public constructor

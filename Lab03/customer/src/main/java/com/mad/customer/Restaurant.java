@@ -1,16 +1,14 @@
 package com.mad.customer;
 
+import static com.mad.lib.SharedClass.*;
 import com.firebase.ui.database.SnapshotParser;
-import com.google.firebase.database.Query;
 import com.mad.lib.Restaurateur;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,39 +16,48 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.SearchView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.squareup.picasso.Picasso;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static android.view.View.INVISIBLE;
-
 
 public class Restaurant extends Fragment {
-
 
     private RecyclerView recyclerView;
     private FirebaseRecyclerAdapter<Restaurateur, RestaurantViewHolder> mAdapter;
     private RecyclerView.LayoutManager layoutManager;
 
-
     private static FirebaseRecyclerOptions<Restaurateur> options =
             new FirebaseRecyclerOptions.Builder<Restaurateur>()
-                    .setQuery(FirebaseDatabase.getInstance().getReference().child("restaurants"),
-                            Restaurateur.class).build();
-
+                    .setQuery(FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO),
+                            new SnapshotParser<Restaurateur>(){
+                                @NonNull
+                                @Override
+                                public Restaurateur parseSnapshot(@NonNull DataSnapshot snapshot) {
+                                    Restaurateur searchRest;
+                                    if(snapshot.child("info").child("photoUri").getValue() == null){
+                                        searchRest = new Restaurateur(snapshot.child("info").child("mail").getValue().toString(),
+                                                snapshot.child("info").child("name").getValue().toString(),
+                                                snapshot.child("info").child("addr").getValue().toString(),
+                                                snapshot.child("info").child("cuisine").getValue().toString(),
+                                                snapshot.child("info").child("openingTime").getValue().toString(),
+                                                snapshot.child("info").child("phone").getValue().toString(),
+                                                "null");
+                                    }
+                                    else{
+                                        searchRest = new Restaurateur(snapshot.child("info").child("mail").getValue().toString(),
+                                                snapshot.child("info").child("name").getValue().toString(),
+                                                snapshot.child("info").child("addr").getValue().toString(),
+                                                snapshot.child("info").child("cuisine").getValue().toString(),
+                                                snapshot.child("info").child("openingTime").getValue().toString(),
+                                                snapshot.child("info").child("phone").getValue().toString(),
+                                                snapshot.child("info").child("photoUri").getValue().toString());
+                                    }
+                                    return searchRest;
+                                }
+                            }).build();
 
     public Restaurant() {
         // Required empty public constructor
@@ -104,36 +111,62 @@ public class Restaurant extends Fragment {
                 if(newText.length()==0){
                     options =
                             new FirebaseRecyclerOptions.Builder<Restaurateur>()
-                                    .setQuery(FirebaseDatabase.getInstance().getReference().child("restaurants"),
-                                            Restaurateur.class).build();
+                                    .setQuery(FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO),
+                                            new SnapshotParser<Restaurateur>(){
+                                                @NonNull
+                                                @Override
+                                                public Restaurateur parseSnapshot(@NonNull DataSnapshot snapshot) {
+                                                    Restaurateur searchRest;
+                                                    if(snapshot.child("info").child("photoUri").getValue() == null){
+                                                        searchRest = new Restaurateur(snapshot.child("info").child("mail").getValue().toString(),
+                                                                snapshot.child("info").child("name").getValue().toString(),
+                                                                snapshot.child("info").child("addr").getValue().toString(),
+                                                                snapshot.child("info").child("cuisine").getValue().toString(),
+                                                                snapshot.child("info").child("openingTime").getValue().toString(),
+                                                                snapshot.child("info").child("phone").getValue().toString(),
+                                                                "null");
+                                                    }
+                                                    else{
+                                                        searchRest = new Restaurateur(snapshot.child("info").child("mail").getValue().toString(),
+                                                                snapshot.child("info").child("name").getValue().toString(),
+                                                                snapshot.child("info").child("addr").getValue().toString(),
+                                                                snapshot.child("info").child("cuisine").getValue().toString(),
+                                                                snapshot.child("info").child("openingTime").getValue().toString(),
+                                                                snapshot.child("info").child("phone").getValue().toString(),
+                                                                snapshot.child("info").child("photoUri").getValue().toString());
+                                                    }
+
+                                                    return searchRest;
+                                                }
+                                            }).build();
                 }
                 else {
                     options =
                             new FirebaseRecyclerOptions.Builder<Restaurateur>()
-                                    .setQuery(FirebaseDatabase.getInstance().getReference().child("restaurants"), new SnapshotParser<Restaurateur>(){
+                                    .setQuery(FirebaseDatabase.getInstance().getReference().child(RESTAURATEUR_INFO), new SnapshotParser<Restaurateur>(){
                                         @NonNull
                                         @Override
                                         public Restaurateur parseSnapshot(@NonNull DataSnapshot snapshot) {
                                             Restaurateur searchRest = new Restaurateur();
 
-                                            if (snapshot.child("name").exists() && snapshot.child("name").getValue().toString().contains(newText)) {
+                                            if (snapshot.child("info").child("name").exists() && snapshot.child("info").child("name").getValue().toString().contains(newText)) {
 
-                                                if (snapshot.child("photoUri").getValue() != null) {
-                                                    searchRest = new Restaurateur(snapshot.child("mail").getValue().toString(),
-                                                            snapshot.child("name").getValue().toString(),
-                                                            snapshot.child("addr").getValue().toString(),
-                                                            snapshot.child("cuisine").getValue().toString(),
-                                                            snapshot.child("openingTime").getValue().toString(),
-                                                            snapshot.child("phone").getValue().toString(),
-                                                            snapshot.child("photoUri").getValue().toString());
+                                                if (snapshot.child("info").child("photoUri").getValue() != null) {
+                                                    searchRest = new Restaurateur(snapshot.child("info").child("mail").getValue().toString(),
+                                                            snapshot.child("info").child("name").getValue().toString(),
+                                                            snapshot.child("info").child("addr").getValue().toString(),
+                                                            snapshot.child("info").child("cuisine").getValue().toString(),
+                                                            snapshot.child("info").child("openingTime").getValue().toString(),
+                                                            snapshot.child("info").child("phone").getValue().toString(),
+                                                            snapshot.child("info").child("photoUri").getValue().toString());
                                                 } else {
-                                                    searchRest = new Restaurateur(snapshot.child("mail").getValue().toString(),
-                                                            snapshot.child("name").getValue().toString(),
-                                                            snapshot.child("addr").getValue().toString(),
-                                                            snapshot.child("cuisine").getValue().toString(),
-                                                            snapshot.child("phone").getValue().toString(),
-                                                            snapshot.child("openingTime").getValue().toString(),
-                                                            null);
+                                                    searchRest = new Restaurateur(snapshot.child("info").child("mail").getValue().toString(),
+                                                            snapshot.child("info").child("name").getValue().toString(),
+                                                            snapshot.child("info").child("addr").getValue().toString(),
+                                                            snapshot.child("info").child("cuisine").getValue().toString(),
+                                                            snapshot.child("info").child("phone").getValue().toString(),
+                                                            snapshot.child("info").child("openingTime").getValue().toString(),
+                                                            "null");
                                                 }
                                             }
 
@@ -201,29 +234,29 @@ public class Restaurant extends Fragment {
     private void setFilter(String filter){
         onStop();
         options = new FirebaseRecyclerOptions.Builder<Restaurateur>()
-                .setQuery(FirebaseDatabase.getInstance().getReference().child("restaurants"), new SnapshotParser<Restaurateur>(){
+                .setQuery(FirebaseDatabase.getInstance().getReference().child(RESTAURATEUR_INFO), new SnapshotParser<Restaurateur>(){
                     @NonNull
                     @Override
                     public Restaurateur parseSnapshot(@NonNull DataSnapshot snapshot) {
                         Restaurateur searchRest = new Restaurateur();
 
-                        if (snapshot.child("cuisine").exists() && snapshot.child("cuisine").getValue().toString().equals(filter)) {
+                        if (snapshot.child("info").child("cuisine").exists() && snapshot.child("info").child("cuisine").getValue().toString().equals(filter)) {
 
-                            if (snapshot.child("photoUri").getValue() != null) {
-                                searchRest = new Restaurateur(snapshot.child("mail").getValue().toString(),
-                                        snapshot.child("name").getValue().toString(),
-                                        snapshot.child("addr").getValue().toString(),
-                                        snapshot.child("cuisine").getValue().toString(),
-                                        snapshot.child("openingTime").getValue().toString(),
-                                        snapshot.child("phone").getValue().toString(),
-                                        snapshot.child("photoUri").getValue().toString());
+                            if (snapshot.child("info").child("photoUri").getValue() != null) {
+                                searchRest = new Restaurateur(snapshot.child("info").child("mail").getValue().toString(),
+                                        snapshot.child("info").child("name").getValue().toString(),
+                                        snapshot.child("info").child("addr").getValue().toString(),
+                                        snapshot.child("info").child("cuisine").getValue().toString(),
+                                        snapshot.child("info").child("openingTime").getValue().toString(),
+                                        snapshot.child("info").child("phone").getValue().toString(),
+                                        snapshot.child("info").child("photoUri").getValue().toString());
                             } else {
-                                searchRest = new Restaurateur(snapshot.child("mail").getValue().toString(),
-                                        snapshot.child("name").getValue().toString(),
-                                        snapshot.child("addr").getValue().toString(),
-                                        snapshot.child("cuisine").getValue().toString(),
-                                        snapshot.child("phone").getValue().toString(),
-                                        snapshot.child("openingTime").getValue().toString(),
+                                searchRest = new Restaurateur(snapshot.child("info").child("mail").getValue().toString(),
+                                        snapshot.child("info").child("name").getValue().toString(),
+                                        snapshot.child("info").child("addr").getValue().toString(),
+                                        snapshot.child("info").child("cuisine").getValue().toString(),
+                                        snapshot.child("info").child("phone").getValue().toString(),
+                                        snapshot.child("info").child("openingTime").getValue().toString(),
                                         null);
                             }
                         }

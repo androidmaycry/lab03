@@ -103,7 +103,8 @@ public class EditOffer extends AppCompatActivity {
 
     private void getData(String dishName){
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference();
-        Query query = myRef.child(DISHES_PATH).orderByChild("name").equalTo(dishName);
+        Query query = myRef.child(RESTAURATEUR_INFO + "/" + ROOT_UID + "/" + DISHES_PATH)
+                .orderByChild("name").equalTo(dishName);
 
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -394,7 +395,8 @@ public class EditOffer extends AppCompatActivity {
     }
 
     private void storeDatabase(){
-        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(DISHES_PATH);
+        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(
+                RESTAURATEUR_INFO + "/" + ROOT_UID + "/" + DISHES_PATH);
         StorageReference storageReference = FirebaseStorage.getInstance().getReference();
         Map<String, Object> dishMap = new HashMap<>();
 

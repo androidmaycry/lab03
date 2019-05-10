@@ -1,5 +1,6 @@
 package com.mad.riders;
 
+import static com.mad.lib.SharedClass.*;
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -28,7 +29,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
-
 
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -108,11 +108,9 @@ public class EditProfile extends AppCompatActivity {
 
     private SharedPreferences user_data, first_check;
 
-    private final String RIDERS_PATH = "riders/users/";
     private FirebaseStorage storage;
     FirebaseDatabase database;
     private StorageReference storageReference;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -181,7 +179,7 @@ public class EditProfile extends AppCompatActivity {
                         new_user.put("rider_info",new User("gallottino",name, surname
                                 ,mail,phone,downUri.toString()));
                         new_user.put("available",true);
-                        DatabaseReference myRef = database.getReference(RIDERS_PATH+UID);
+                        DatabaseReference myRef = database.getReference(RIDERS_PATH +"/"+UID);
                         myRef.updateChildren(new_user);
                         finish();
                     }
@@ -193,7 +191,7 @@ public class EditProfile extends AppCompatActivity {
             new_user.put("rider_info",new User("gallottino",name, surname
                     ,mail,phone,"null"));
             new_user.put("available",true);
-            DatabaseReference myRef = database.getReference(RIDERS_PATH+UID);
+            DatabaseReference myRef = database.getReference(RIDERS_PATH +"/"+UID);
             myRef.updateChildren(new_user);
             finish();
         }

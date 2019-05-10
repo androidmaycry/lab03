@@ -268,7 +268,7 @@ public class EditProfile extends AppCompatActivity {
     }
 
     private void storeDatabase(){
-        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO);
+        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO + "/" + ROOT_UID);
         StorageReference storageReference = FirebaseStorage.getInstance().getReference();
         Map<String, Object> profileMap = new HashMap<>();
 
@@ -285,7 +285,7 @@ public class EditProfile extends AppCompatActivity {
                 if (task.isSuccessful()){
                     Uri downUri = task.getResult();
 
-                    profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, "", phone, downUri.toString()));
+                    profileMap.put("info", new Restaurateur(mail, name, addr, desc, "", phone, downUri.toString()));
                     myRef.updateChildren(profileMap);
 
                     finish();
@@ -294,9 +294,9 @@ public class EditProfile extends AppCompatActivity {
         }
         else{
             if(currentPhotoPath != null)
-                profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, "", phone, currentPhotoPath));
+                profileMap.put("info", new Restaurateur(mail, name, addr, desc, "", phone, currentPhotoPath));
             else
-                profileMap.put(ROOT_UID, new Restaurateur(mail, name, addr, desc, "", phone,  null));
+                profileMap.put("info", new Restaurateur(mail, name, addr, desc, "", phone,  null));
 
             myRef.updateChildren(profileMap);
 

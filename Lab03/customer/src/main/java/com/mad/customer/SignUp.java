@@ -111,7 +111,7 @@ public class SignUp extends AppCompatActivity {
 
     private void uploadImage() {
         final ProgressDialog progressDialog = new ProgressDialog(this);
-        DatabaseReference myRef = database.getReference(CUSTOMER_PATH+"/"+ROOT_UID);
+        DatabaseReference myRef = database.getReference(CUSTOMER_PATH + "/" + ROOT_UID);
 
         progressDialog.setTitle("Creating profile...");
         progressDialog.show();
@@ -133,7 +133,7 @@ public class SignUp extends AppCompatActivity {
                     Log.d("URL", "onComplete: Url: "+ downUri.toString());
 
                     Map<String, Object> new_user = new HashMap<>();
-                    new_user.put("customer_info",new User("malanti", name, surname
+                    new_user.put("info",new User("malanti", name, surname
                             , mail, phone, address, downUri.toString()));
                     myRef.updateChildren(new_user);
 
@@ -144,7 +144,6 @@ public class SignUp extends AppCompatActivity {
                 }
             }).addOnFailureListener(task -> {
                 Log.d("FAILURE",task.getMessage());
-
             });
         }
         else{

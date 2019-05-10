@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static com.mad.lib.SharedClass.ACCEPTED_ORDER_PATH;
+import static com.mad.lib.SharedClass.RESERVATION_PATH;
+import static com.mad.lib.SharedClass.RESTAURATEUR_INFO;
 import static com.mad.lib.SharedClass.TimeOpen;
 import static com.mad.lib.SharedClass.user;
 
@@ -63,10 +65,11 @@ public class Confirm extends AppCompatActivity {
             if(desiredTime.trim().length() > 0){
 
                 //TODO controlla formato orario
-                DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(ACCEPTED_ORDER_PATH);
+                DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(RESTAURATEUR_INFO + "/" +
+                        key + RESERVATION_PATH);
                 HashMap<String, Object> orderMap = new HashMap<>();
 
-                orderMap.put(myRef.push().getKey(), new OrderItem(user.getName(), user.getAddr(), restAddr, user.getPhone(), desiredTime,tot, photo, names));
+                orderMap.put(myRef.push().getKey(), new OrderItem(user.getName(), user.getAddr(), restAddr, user.getPhone(), desiredTime,tot, user.getPhotoPath(), names));
                 myRef.updateChildren(orderMap);
 
                 setResult(1);
